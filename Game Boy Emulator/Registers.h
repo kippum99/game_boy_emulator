@@ -42,23 +42,23 @@ public:
 
 	void set_f(const u8 val);
 
-	void set_flag_z();
-	void clear_flag_z();
-	void set_flag_n();
-	void clear_flag_n();
-	void set_flag_h();
-	void clear_flag_h();
-	void set_flag_c();
-	void clear_flag_c();
+	void set_flag_z(bool val);
+	void set_flag_n(bool val);
+	void set_flag_h(bool val);
+	void set_flag_c(bool val);
 
 	void set_af(const u16 val);
 	void set_bc(const u16 val);
 	void set_de(const u16 val);
 	void set_hl(const u16 val);
 
+	void inc_hl();
+	void dec_hl();
+
 	void set_sp(const u16 val);
 	void inc_sp();
 	void dec_sp();
+
 	void set_pc(const u16 val);
 	void inc_pc();
 

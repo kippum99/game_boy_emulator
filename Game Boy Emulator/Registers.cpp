@@ -1,5 +1,7 @@
 #include "Registers.h"
 
+#include "utils.h"
+
 
 Registers::Registers() {
 	_a = 0;
@@ -68,6 +70,18 @@ bool Registers::get_flag_c() const {
 }
 
 
+u16 Registers::get_af() const {
+	return _a << 8 | _f;
+}
+
+u16 Registers::get_bc() const {
+	return _b << 8 | _c;
+}
+
+u16 Registers::get_de() const {
+	return _d << 8 | _e;
+}
+
 u16 Registers::get_hl() const {
 	return _h << 8 | _l;
 }
@@ -112,61 +126,50 @@ void Registers::set_l(const u8 val) {
 }
 
 
-void Registers::set_f(const u8 val) {
-	_f = val;
+void Registers::set_flag_z(bool val) {
+	_f = set_bit(_f, 7, val);
 }
 
-void Registers::set_flag_z() {
-	_f |= 0x10000000;
+void Registers::set_flag_n(bool val) {
+	_f = set_bit(_f, 6, val);
 }
 
-void Registers::clear_flag_z() {
-	_f &= 0x01111111;
+void Registers::set_flag_h(bool val) {
+	_f = set_bit(_f, 5, val);
 }
 
-void Registers::set_flag_n() {
-	_f |= 0x01000000;
-}
-
-void Registers::clear_flag_n() {
-	_f &= 0x10111111;
-}
-
-void Registers::set_flag_h() {
-	_f |= 0x00100000;
-}
-
-void Registers::clear_flag_h() {
-	_f &= 0x11011111;
-}
-
-void Registers::set_flag_c() {
-	_f |= 0x00010000;
-}
-
-void Registers::clear_flag_c() {
-	_f &= 0x11101111;
+void Registers::set_flag_c(bool val) {
+	_f = set_bit(_f, 4, val);
 }
 
 
 void Registers::set_af(const u16 val) {
 	_a = val >> 8;
-	_f = val & 0b00001111;
+	_f = val & 0xFF;
 }
 
 void Registers::set_bc(const u16 val) {
 	_b = val >> 8;
-	_c = val & 0b00001111;
+	_c = val & 0xFF;
 }
 
 void Registers::set_de(const u16 val) {
 	_d = val >> 8;
-	_e = val & 0b00001111;
+	_e = val & 0xFF;
 }
+
 
 void Registers::set_hl(const u16 val) {
 	_h = val >> 8;
-	_l = val & 0b00001111;
+	_l = val & 0xFF;
+}
+
+void Registers::inc_hl() {
+	_h++;
+}
+
+void Registers::dec_hl() {
+	_h--;
 }
 
 
@@ -181,6 +184,7 @@ void Registers::inc_sp() {
 void Registers::dec_sp() {
 	_sp--;
 }
+
 
 void Registers::set_pc(const u16 val) {
 	_pc = val;
