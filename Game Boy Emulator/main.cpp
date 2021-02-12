@@ -32,7 +32,7 @@ int main() {
     Cpu cpu{ memory };
 
     memory.load_rom((u8*)rom);
-    cpu.run_rom((u8*)rom);
+    cpu.execute();
 
     return 0;
 }

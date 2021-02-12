@@ -148,14 +148,32 @@ void Registers::set_af(const u16 val) {
 	_f = val & 0xFF;
 }
 
+
 void Registers::set_bc(const u16 val) {
 	_b = val >> 8;
 	_c = val & 0xFF;
 }
 
+void Registers::inc_bc() {
+	set_bc(get_bc() + 1);
+}
+
+void Registers::dec_bc() {
+	set_bc(get_bc() - 1);
+}
+
+
 void Registers::set_de(const u16 val) {
 	_d = val >> 8;
 	_e = val & 0xFF;
+}
+
+void Registers::inc_de() {
+	set_de(get_de() + 1);
+}
+
+void Registers::dec_de() {
+	set_de(get_de() - 1);
 }
 
 
@@ -165,11 +183,11 @@ void Registers::set_hl(const u16 val) {
 }
 
 void Registers::inc_hl() {
-	_h++;
+	set_hl(get_hl() + 1);
 }
 
 void Registers::dec_hl() {
-	_h--;
+	set_hl(get_hl() - 1);
 }
 
 

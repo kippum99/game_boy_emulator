@@ -9,7 +9,7 @@ class Cpu {
 public:
 	Cpu(Memory& memory);
 
-	void run_rom(u8* rom);
+	void execute();
 	
 private:
 	Memory& _memory;
@@ -18,11 +18,11 @@ private:
 
 	/* For reading ROM file directly - must replace later */
 
-	// Reads 8 bits from ROM file (using pc)
-	u8 _read8(const u8* rom);
+	// Reads the next 8 bits from memory at pc address and increments pc
+	u8 _read8();
 
-	// Reads 16 bits from ROM file (using pc)
-	u16 _read16(const u8* rom);
+	// Reads the next 16 bits from memroy at pc address and increments pc twice.
+	u16 _read16();
 
 
 	/* Instrunction helper functions */
@@ -30,6 +30,8 @@ private:
 	void _push_stack(const u16 val);
 	u16 _pop_stack();
 
+	u8 _and(const u8 val1, const u8 val2);
+	u8 _or(const u8 val1, const u8 val2);
 	void _cp(const u8 val1, const u8 val2);
 	u8 _inc(const u8 val);
 	u8 _rr(const u8 val);

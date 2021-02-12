@@ -50,16 +50,78 @@ Cpu::Cpu(Memory& memory) : _memory(memory), _registers(Registers{}) {
     _memory.write(0xFF4A, 0x00);    // WY
     _memory.write(0xFF4B, 0x00);    // WX
     _memory.write(0xFFFF, 0x00);    // IE
+
+    // TODO: Remove this after implementing cycle and LCD properly
+    // This is only maually set here so that we don't get stuck in a loop
+    // while waiting for the value of LY to change.
+    _memory.write(0xFF44, 0x90);
 }
 
 
-void Cpu::run_rom(u8* rom) {
+// Execute the program with the current pc
+void Cpu::execute() {
     int counter = 0;
 
     //cout.setstate(ios_base::failbit);
 
+    int tile_count = 0;
+    int line_count = 0;
+
     while (true) {
-        u8 opcode = rom[_registers.get_pc()];
+        if (_registers.get_pc() == 0xC3F8) {
+            // Check VRAM data
+            cout << "Checking VRAM" << endl;
+
+            line_count++;
+
+            if (line_count == 8) {
+                line_count = 0;
+                tile_count++;
+            }
+
+            if (tile_count == 2) {
+                cout << "Printing tile at VRAM:8210" << endl;
+                printf("%X%X\n", _memory.read(0x8211), _memory.read(0x8210));
+                printf("%X%X\n", _memory.read(0x8213), _memory.read(0x8212));
+                printf("%X%X\n", _memory.read(0x8215), _memory.read(0x8214));
+                printf("%X%X\n", _memory.read(0x8217), _memory.read(0x8216));
+                printf("%X%X\n", _memory.read(0x8219), _memory.read(0x8218));
+                printf("%X%X\n", _memory.read(0x821B), _memory.read(0x821A));
+                printf("%X%X\n", _memory.read(0x821D), _memory.read(0x821C));
+                printf("%X%X\n", _memory.read(0x821F), _memory.read(0x821E));
+
+                cout << "Drawing tile at VRAM:8210" << endl;
+
+                // Draw tile (i is row index and j is col index)
+                for (int i = 0; i < 8; i++) {
+                    u16 line_addr = 0x8210 + i * 2;
+
+                    // Low bits of color numbers for the line
+                    u8 color_numbers_low = _memory.read(line_addr);
+
+                    // High bits of color numbers for the line
+                    u8 color_numbers_high = _memory.read(line_addr + 1);
+
+                    for (int j = 0; j < 8; j++) {
+                        u3 pixel_bit = 7 - j;
+                        u2 color_num = ((get_bit(color_numbers_high, pixel_bit) << 1)
+                                        | get_bit(color_numbers_low, pixel_bit));
+                        //printf("%02X ", color_num);
+
+                        cout << (color_num != 0);
+                    }
+                    printf("\n");
+                }
+
+                return;
+            }
+        }
+
+
+        u8 opcode = _memory.read(_registers.get_pc());
+
+        printf("pc: %X ", _registers.get_pc());
+
         _registers.inc_pc();
 
         printf("%X ", opcode);
@@ -74,13 +136,19 @@ void Cpu::run_rom(u8* rom) {
         case 0x01:
             cout << "LD BC,u16" << endl;
 
-            _registers.set_bc(_read16(rom));
+            _registers.set_bc(_read16());
 
             break;
         case 0x02:
             cout << "LD (BC),A" << endl;
 
             _memory.write(_registers.get_bc(), _registers.get_a());
+
+            break;
+        case 0x03:
+            cout << "INC BC" << endl;
+
+            _registers.inc_bc();
 
             break;
         case 0x04:
@@ -105,14 +173,14 @@ void Cpu::run_rom(u8* rom) {
         case 0x06:
             cout << "LD B,u8" << endl;
 
-            _registers.set_b(_read8(rom));
+            _registers.set_b(_read8());
 
             break;
         case 0x08:
         {
             cout << "LD (u16),SP" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
 
             u16 sp_val = _registers.get_sp();
             _memory.write(next_u16, lsb(sp_val));
@@ -124,6 +192,12 @@ void Cpu::run_rom(u8* rom) {
             cout << "LD A,(BC)" << endl;
 
             _registers.set_a(_memory.read(_registers.get_bc()));
+
+            break;
+        case 0x0B:
+            cout << "DEC BC" << endl;
+
+            _registers.dec_bc();
 
             break;
         case 0x0C:
@@ -148,19 +222,25 @@ void Cpu::run_rom(u8* rom) {
         case 0x0E:
             cout << "LD C,u8" << endl;
 
-            _registers.set_c(_read8(rom));
+            _registers.set_c(_read8());
 
             break;
         case 0x11:
             cout << "LD DE,u16" << endl;
 
-            _registers.set_de(_read16(rom));
+            _registers.set_de(_read16());
 
             break;
         case 0x12:
             cout << "LD (DE),A" << endl;
 
             _memory.write(_registers.get_de(), _registers.get_a());
+
+            break;
+        case 0x13:
+            cout << "INC DE" << endl;
+
+            _registers.inc_de();
 
             break;
         case 0x14:
@@ -185,19 +265,26 @@ void Cpu::run_rom(u8* rom) {
         case 0x16:
             cout << "LD D,u8" << endl;
 
-            _registers.set_d(_read8(rom));
+            _registers.set_d(_read8());
 
             break;
         case 0x18:
             cout << "JR i8" << endl;
 
-            _registers.set_pc(_registers.get_pc() + (i8)_read8(rom));
+            next_u8 = _read8();
+            _registers.set_pc(_registers.get_pc() + (i8)next_u8);
 
             break;
         case 0x1A:
             cout << "LD A,(DE)" << endl;
 
             _registers.set_a(_memory.read(_registers.get_de()));
+
+            break;
+        case 0x1B:
+            cout << "DEC DE" << endl;
+
+            _registers.dec_de();
 
             break;
         case 0x1C:
@@ -222,13 +309,13 @@ void Cpu::run_rom(u8* rom) {
         case 0x1E:
             cout << "LD E,u8" << endl;
 
-            _registers.set_e(_read8(rom));
+            _registers.set_e(_read8());
 
             break;
         case 0x20:
             cout << "JR NZ,i8" << endl;
 
-            next_u8 = _read8(rom);
+            next_u8 = _read8();
 
             if (_registers.get_flag_z() == 0) {
                 _registers.set_pc(_registers.get_pc() + (i8)next_u8);
@@ -238,7 +325,20 @@ void Cpu::run_rom(u8* rom) {
         case 0x21:
             cout << "LD HL,u16" << endl;
 
-            _registers.set_hl(_read16(rom));
+            _registers.set_hl(_read16());
+
+            break;
+        case 0x22:
+            cout << "LD (HL+),A" << endl;
+
+            _memory.write(_registers.get_hl(), _registers.get_a());
+            _registers.inc_hl();
+
+            break;
+        case 0x23:
+            cout << "INC HL" << endl;
+
+            _registers.inc_hl();
 
             break;
         case 0x24:
@@ -263,13 +363,13 @@ void Cpu::run_rom(u8* rom) {
         case 0x26:
             cout << "LD H,u8" << endl;
 
-            _registers.set_h(_read8(rom));
+            _registers.set_h(_read8());
 
             break;
         case 0x28:
             cout << "JR Z,i8" << endl;
 
-            next_u8 = _read8(rom);
+            next_u8 = _read8();
 
             if (_registers.get_flag_z() == 1) {
                 _registers.set_pc(_registers.get_pc() + (i8)next_u8);
@@ -281,6 +381,12 @@ void Cpu::run_rom(u8* rom) {
 
             _registers.set_a(_memory.read(_registers.get_hl()));
             _registers.inc_hl();
+
+            break;
+        case 0x2B:
+            cout << "DEC HL" << endl;
+
+            _registers.dec_hl();
 
             break;
         case 0x2C:
@@ -305,7 +411,7 @@ void Cpu::run_rom(u8* rom) {
         case 0x2E:
             cout << "LD L,u8" << endl;
 
-            _registers.set_l(_read8(rom));
+            _registers.set_l(_read8());
 
             break;
         case 0x2F:
@@ -319,7 +425,7 @@ void Cpu::run_rom(u8* rom) {
         case 0x30:
             cout << "JR NC,i8" << endl;
 
-            next_u8 = _read8(rom);
+            next_u8 = _read8();
 
             if (_registers.get_flag_c() == 0) {
                 _registers.set_pc(_registers.get_pc() + (i8)next_u8);
@@ -329,7 +435,13 @@ void Cpu::run_rom(u8* rom) {
         case 0x31:
             cout << "LD SP,u16" << endl;
 
-            _registers.set_sp(_read16(rom));
+            _registers.set_sp(_read16());
+
+            break;
+        case 0x33:
+            cout << "INC SP" << endl;
+
+            _registers.inc_sp();
 
             break;
         case 0x34:
@@ -357,17 +469,23 @@ void Cpu::run_rom(u8* rom) {
         case 0x36:
             cout << "LD (HL),u8" << endl;
 
-            _memory.write(_registers.get_hl(), _read8(rom));
+            _memory.write(_registers.get_hl(), _read8());
 
             break;
         case 0x38:
             cout << "JR C,i8" << endl;
 
-            next_u8 = _read8(rom);
+            next_u8 = _read8();
 
             if (_registers.get_flag_c() == 1) {
                 _registers.set_pc(_registers.get_pc() + (i8)next_u8);
             }
+
+            break;
+        case 0x3B:
+            cout << "DEC SP" << endl;
+
+            _registers.dec_sp();
 
             break;
         case 0x3C:
@@ -392,7 +510,7 @@ void Cpu::run_rom(u8* rom) {
         case 0x3E:
             cout << "LD A,u8" << endl;
 
-            next_u8 = _read8(rom);
+            next_u8 = _read8();
             _registers.set_a(next_u8);
 
             break;
@@ -774,6 +892,18 @@ void Cpu::run_rom(u8* rom) {
             // NOP
 
             break;
+        case 0xA0:
+            cout << "AND A,B" << endl;
+
+            _registers.set_a(_and(_registers.get_a(), _registers.get_b()));
+
+            break;
+        case 0xA7:
+            cout << "AND A,A" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _registers.get_a()));
+
+            break;
         case 0xA8:
         {
             cout << "XOR A,B" << endl;
@@ -883,6 +1013,55 @@ void Cpu::run_rom(u8* rom) {
             _registers.set_flag_c(0);
 
             break;
+        case 0xB0:
+            cout << "OR A,B" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _registers.get_b()));
+
+            break;
+        case 0xB1:
+            cout << "OR A,C" << endl;
+            
+            _registers.set_a(_or(_registers.get_a(), _registers.get_c()));
+
+            break;
+        case 0xB2:
+            cout << "OR A,D" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _registers.get_d()));
+
+            break;
+        case 0xB3:
+            cout << "OR A,E" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _registers.get_e()));
+
+            break;
+        case 0xB4:
+            cout << "OR A,H" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _registers.get_h()));
+
+            break;
+        case 0xB5:
+            cout << "OR A,L" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _registers.get_l()));
+
+            break;
+        case 0xB6:
+            cout << "OR A,(HL)" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _memory.read(_registers.get_hl())));
+
+            break;
+        case 0xB7:
+            cout << "OR A,A" << endl;
+
+            // TODO: Could optimize
+            _registers.set_a(_or(_registers.get_a(), _registers.get_a()));
+
+            break;
         case 0xB8:
             cout << "CP A,B" << endl;
 
@@ -952,7 +1131,7 @@ void Cpu::run_rom(u8* rom) {
         case 0xC2:
             cout << "JP NZ,u16" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
 
             if (_registers.get_flag_z() == 0) {
                 _registers.set_pc(next_u16);
@@ -962,8 +1141,19 @@ void Cpu::run_rom(u8* rom) {
         case 0xC3:
             cout << "JP u16" << endl;
 
-            _registers.set_pc(_read16(rom));
+            _registers.set_pc(_read16());
             //cout << "Set PC to " << u16_to_binary(_registers.get_pc()) << endl;
+
+            break;
+        case 0xC4:
+            cout << "CALL NZ,u16" << endl;
+
+            next_u16 = _read16();
+
+            if (_registers.get_flag_z() == 0) {
+                _push_stack(_registers.get_pc());
+                _registers.set_pc(next_u16);
+            }
 
             break;
         case 0xC5:
@@ -988,18 +1178,14 @@ void Cpu::run_rom(u8* rom) {
         {
             cout << "RET" << endl;
 
-            u8 lsb = _memory.read(_registers.get_sp());
-            _registers.inc_sp();
-            u8 msb = _memory.read(_registers.get_sp());
-            _registers.inc_sp();
-            _registers.set_pc(get_u16(lsb, msb));
+            _registers.set_pc(_pop_stack());
 
             break;
         }
         case 0xCA:
             cout << "JP Z,u16" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
 
             if (_registers.get_flag_z() == 1) {
                 _registers.set_pc(next_u16);
@@ -1009,24 +1195,24 @@ void Cpu::run_rom(u8* rom) {
         case 0xCD:
             cout << "CALL u16" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
                 
-            printf("Called function: %X ", next_u16);
-            printf("pc: %X ", _registers.get_pc());
+            printf("Called function: %X\n", next_u16);
 
-            return;
             // TODO: REMOVE THE FOLLOWING
             // Tile drawing function
-            if (next_u16 == 0x0B79 || next_u16 == 0xC093) {
-                cout << "Tile drawing!!!" << endl;
-                return;
-            }
+            //if (next_u16 == 0xC093) {
+            //    cout << "Tile drawing!!!" << endl;
+            //    return;
+            //}
+
+            //if (next_u16 == 0xC79B) {
+            //    cout << "Tile drawing!!!" << endl;
+            //    return;
+            //}
 
             // Save current pc value in stack
-            _registers.dec_sp();
-            _memory.write(_registers.get_sp(), msb(_registers.get_pc()));
-            _registers.dec_sp();
-            _memory.write(_registers.get_sp(), lsb(_registers.get_pc()));
+            _push_stack(_registers.get_pc());
 
             _registers.set_pc(next_u16);
 
@@ -1052,7 +1238,7 @@ void Cpu::run_rom(u8* rom) {
         case 0xD2:
             cout << "JP NC,u16" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
 
             if (_registers.get_flag_c() == 0) {
                 _registers.set_pc(next_u16);
@@ -1080,7 +1266,7 @@ void Cpu::run_rom(u8* rom) {
         case 0xDA:
             cout << "JP C,u16" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
 
             if (_registers.get_flag_c() == 1) {
                 _registers.set_pc(next_u16);
@@ -1090,7 +1276,7 @@ void Cpu::run_rom(u8* rom) {
         case 0xE0:
             cout << "LD (FF00+u8),A" << endl;
 
-            _memory.write(0xFF00 + _read8(rom), _registers.get_a());
+            _memory.write(0xFF00 + _read8(), _registers.get_a());
 
             break;
         case 0xE1:
@@ -1105,6 +1291,12 @@ void Cpu::run_rom(u8* rom) {
             _push_stack(_registers.get_hl());
 
             break;
+        case 0xE6:
+            cout << "AND A,u8" << endl;
+
+            _registers.set_a(_and(_registers.get_a(), _read8()));
+
+            break;
         case 0xE9:
             cout << "JP HL" << endl;
 
@@ -1114,7 +1306,7 @@ void Cpu::run_rom(u8* rom) {
         case 0xEA:
             cout << "LD (u16),A" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
             _memory.write(next_u16, _registers.get_a());
 
             break;
@@ -1122,7 +1314,7 @@ void Cpu::run_rom(u8* rom) {
         {
             cout << "XOR A,u8" << endl;
 
-            u8 res = _registers.get_a() ^ _read8(rom);
+            u8 res = _registers.get_a() ^ _read8();
             _registers.set_a(res);
 
             _registers.set_flag_z(res == 0);
@@ -1135,7 +1327,7 @@ void Cpu::run_rom(u8* rom) {
         case 0xF0:
             cout << "LD A,(FF00+u8)" << endl;
 
-            next_u8 = _read8(rom);
+            next_u8 = _read8();
             _registers.set_a(_memory.read(get_u16(next_u8, 0xFF)));
 
             break;
@@ -1149,37 +1341,43 @@ void Cpu::run_rom(u8* rom) {
             cout << "DI" << endl;
             // TODO
             break;
-        case 0xFD:
-            cout << "Undefined" << endl;
-
-            return;
-
-            break;
         case 0xF5:
             cout << "PUSH AF" << endl;
             
             _push_stack(_registers.get_af());
 
             break;
+        case 0xF6:
+            cout << "OR A,u8" << endl;
+
+            _registers.set_a(_or(_registers.get_a(), _read8()));
+
+            break;
         case 0xFA:
             cout << "LD A,(u16)" << endl;
 
-            next_u16 = _read16(rom);
+            next_u16 = _read16();
             _registers.set_a(_memory.read(next_u16));
+
+            break;
+        case 0xFD:
+            cout << "Undefined" << endl;
+
+            return;
 
             break;
         case 0xFE:
         {
             cout << "CP A,u8" << endl;
 
-            _cp(_registers.get_a(), _read8(rom));
+            _cp(_registers.get_a(), _read8());
 
             break;
         }
 
         case 0xCB:  // Extended opcode
         {
-            u8 extended_opcode = rom[_registers.get_pc()];
+            u8 extended_opcode = _memory.read(_registers.get_pc());
             _registers.inc_pc();
 
             printf("%X ", extended_opcode);
@@ -1274,26 +1472,25 @@ void Cpu::run_rom(u8* rom) {
 
 /* For reading ROM file directly - must replace later */
 
-// Reads 8 bits from ROM file (pc)
-u8 Cpu::_read8(const u8* rom) {
-    u8 u8 = rom[_registers.get_pc()];
+// Reads the next 8 bits from memory at pc address and increments pc.
+u8 Cpu::_read8() {
+    u8 u8 = _memory.read(_registers.get_pc());
     _registers.inc_pc();
 
     return u8;
 }
 
-// Reads 16 bits from ROM file
-u16 Cpu::_read16(const u8* rom) {
+// Reads the next 16 bits from memroy at pc address and increments pc
+// twice.
+u16 Cpu::_read16() {
     // Read the next two bytes
-    u8 lsb = rom[_registers.get_pc()];
+    u8 lsb = _memory.read(_registers.get_pc());
     _registers.inc_pc();
-    u8 msb = rom[_registers.get_pc()];
+    u8 msb = _memory.read(_registers.get_pc());
     _registers.inc_pc();
 
-    // Get the 16-bit address
-    u16 u16 = msb << 8 | lsb;
-
-    return u16;
+    // Return the 16-bit address
+    return get_u16(lsb, msb);
 }
 
 
@@ -1318,6 +1515,30 @@ u16 Cpu::_pop_stack() {
     return get_u16(lsb, msb);
 }
 
+
+// Returns the logical AND of val1 with val2 and sets flags appropriately.
+u8 Cpu::_and(const u8 val1, const u8 val2) {
+    u8 res = val1 & val2;
+
+    _registers.set_flag_z(res == 0);
+    _registers.set_flag_n(0);
+    _registers.set_flag_h(1);
+    _registers.set_flag_c(0);
+
+    return res;
+}
+
+// Returns the logical OR of val1 with val2 and sets flags appropriately.
+u8 Cpu::_or(const u8 val1, const u8 val2) {
+    u8 res = val1 | val2;
+
+    _registers.set_flag_z(res == 0);
+    _registers.set_flag_n(0);
+    _registers.set_flag_h(0);
+    _registers.set_flag_c(0);
+
+    return res;
+}
 
 void Cpu::_cp(const u8 val1, const u8 val2) {
     i8 res = val1 - val2;
