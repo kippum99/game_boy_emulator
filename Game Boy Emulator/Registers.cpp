@@ -145,7 +145,7 @@ void Registers::set_flag_c(bool val) {
 
 void Registers::set_af(const u16 val) {
 	_a = val >> 8;
-	_f = val & 0xFF;
+	_f = val & 0xF0;	// Note that bits 0-3 are always zero.
 }
 
 
