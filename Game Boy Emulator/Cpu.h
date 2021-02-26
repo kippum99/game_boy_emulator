@@ -10,6 +10,8 @@ public:
 	Cpu(Memory& memory);
 
 	unsigned int execute_next();
+	void handle_interrupt();
+	void service_interrupt(u3 interrupt_bit);
 
 	// TODO: Move to private, but it's public for debugging for now.
 	Registers _registers;
@@ -18,6 +20,8 @@ private:
 	Memory& _memory;
 	//Registers _registers;
 	
+	// Interrupt master enable flag
+	bool _ime;
 
 	/* For reading ROM file directly - must replace later */
 

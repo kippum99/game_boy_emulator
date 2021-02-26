@@ -9,6 +9,8 @@ using namespace std;
 
 
 Cpu::Cpu(Memory& memory) : _memory(memory), _registers(Registers{}) {
+    _ime = true;
+
     // Power up (reset register values)
     // Initialize program counter and stack pointer 
     _registers.set_pc(0x100);
@@ -1426,7 +1428,9 @@ unsigned int Cpu::execute_next() {
         break;
     case 0xF3:
         cout << "DI" << endl;
-        // TODO
+        
+        _ime = false;
+
         break;
     case 0xF5:
         cout << "PUSH AF" << endl;
@@ -1440,11 +1444,40 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(_or(_registers.get_a(), _read8()));
 
         break;
+    case 0xF8:
+    {
+        cout << "LD HL,SP+i8" << endl;
+
+        u16 sp = _registers.get_sp();
+        i8 next_i8 = (i8)_read8();
+        unsigned int res = sp + next_i8;
+
+        _registers.set_hl((u16)res);
+
+        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
+        _registers.set_flag_h((sp & 0xF) + (next_i8 & 0xF) > 0xF);
+        _registers.set_flag_c(res > 0xFF);
+
+        break;
+    }
+    case 0xF9:
+        cout << "LD SP,HL" << endl;
+
+        _registers.set_sp(_registers.get_hl());
+
+        break;
     case 0xFA:
         cout << "LD A,(u16)" << endl;
 
         next_u16 = _read16();
         _registers.set_a(_memory.read(next_u16));
+
+        break;
+    case 0xFB:
+        cout << "EI" << endl;
+
+        _ime = true;
 
         break;
     case 0xFD:
@@ -1593,6 +1626,48 @@ unsigned int Cpu::execute_next() {
 
     // TODO: Return actual number of cycles
     return 1;
+}
+
+
+void Cpu::handle_interrupt() {
+    if (_ime) {
+        u8 interrupt_flag = _memory.read(0xFF0F);
+        u8 interrupt_enable = _memory.read(0xFFFF);
+
+        // Service the interrupt in the order of priority
+        for (int i = 0; i <= 4; i++) {
+            if (get_bit(interrupt_flag, i) && get_bit(interrupt_enable, i)) {
+                Cpu::service_interrupt(i);
+            }
+        }
+    }
+}
+
+
+// interrupt_bit can take on 0 (V-Blank), 1 (LCDC Status), ..., 4.
+void Cpu::service_interrupt(u3 interrupt_bit) {
+    _ime = false;
+
+    // Reset the IF register
+    _memory.write(0xFF0F, set_bit(_memory.read(0xFF0F), interrupt_bit, 0));
+
+    _push_stack(_registers.get_pc());
+
+    // Jump to starting address of interrupt
+    switch (interrupt_bit) {
+    case 0:
+        _registers.set_pc(0x40);
+        break;
+    case 1:
+        _registers.set_pc(0x48);
+        break;
+    case 2:
+        _registers.set_pc(0x50);
+        break;
+    case 4:
+        _registers.set_pc(0x60);
+        break;
+    }
 }
 
 

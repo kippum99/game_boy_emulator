@@ -1,6 +1,13 @@
+#include <iostream>
+
 #include "GameBoy.h"
 
-GameBoy::GameBoy() : _memory(Memory{}), _cpu(Cpu{ _memory }), _ppu(Ppu{ _memory }) {
+
+using namespace std;
+
+
+GameBoy::GameBoy() : _memory(Memory{}), _cpu(Cpu{ _memory }), _ppu(Ppu{ _memory }), 
+                     _timer(Timer{}) {
 }
 
 
@@ -9,13 +16,21 @@ void GameBoy::load_rom(const u8* rom) {
 }
 
 
+// This function should be called 60 times a second (60 fps)
 void GameBoy::update_frame() {
     const unsigned int CYCLES_PER_FRAME = 69905;
     
-    unsigned int num_cycles = 0;
+    // Total number of cycles during this frame
+    unsigned int total_cycles = 0;
 
-    while (num_cycles < CYCLES_PER_FRAME) {
-        num_cycles += _cpu.execute_next();
+    while (total_cycles < CYCLES_PER_FRAME) {
+        unsigned int cycles = _cpu.execute_next();
+
+        _timer.update(cycles);
+        //_ppu.update(cycles);
+        _cpu.handle_interrupt();
+
+        total_cycles += cycles;
     }
 
     if (_cpu._registers.get_pc() > 0x3000) {

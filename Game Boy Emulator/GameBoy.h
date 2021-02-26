@@ -3,6 +3,7 @@
 #include "Cpu.h"
 #include "Memory.h"
 #include "Ppu.h"
+#include "Timer.h"
 #include "types.h"
 
 
@@ -17,5 +18,6 @@ private:
 	Memory _memory;
 	Cpu _cpu;
 	Ppu _ppu;
+	Timer _timer;
 };
 

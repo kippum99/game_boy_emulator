@@ -11,23 +11,16 @@ using namespace std;
 
 
 int main(int argc, char* args[]) {
-    ifstream rom_file("roms/01-special.gb", ios::in | ios::binary | ios::ate);
+    u8* cartridge_memory = new u8[0x200000];
 
-    assert(rom_file.is_open());
+    FILE* rom_file;
+    rom_file = fopen("roms/02-interrupts.gb", "rb");
 
-    char* rom;
-    size_t rom_size = rom_file.tellg();
-    
-    // TODO: Remove after implementing rom bank mapping
-    assert(rom_size == 32768);
-
-    rom = new char[rom_size];
-    rom_file.seekg(0, ios::beg);
-    rom_file.read(rom, rom_size);
-    rom_file.close();
+    fread(cartridge_memory, 1, 0x200000, rom_file);
+    fclose(rom_file);
 
     GameBoy gameboy{};
-    gameboy.load_rom((u8*)rom);
+    gameboy.load_rom(cartridge_memory);
     
     while (true) {
         gameboy.update_frame();
