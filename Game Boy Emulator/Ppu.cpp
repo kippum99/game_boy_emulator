@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include <SDL.h>
-
 #include "Ppu.h"
 #include "utils.h"
 

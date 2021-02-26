@@ -9,7 +9,7 @@ class Cpu {
 public:
 	Cpu(Memory& memory);
 
-	void execute_next();
+	unsigned int execute_next();
 
 	// TODO: Move to private, but it's public for debugging for now.
 	Registers _registers;

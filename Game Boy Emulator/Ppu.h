@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SDL.h>
+
 #include "Memory.h"
 
 
@@ -12,7 +14,7 @@ public:
 private:
 	Memory& _memory;
 
-	SDL_Event _event;
+	//SDL_Event _event;
 	SDL_Window* _window;
 	SDL_Renderer* _renderer;
 };

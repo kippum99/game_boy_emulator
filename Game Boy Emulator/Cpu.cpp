@@ -60,58 +60,9 @@ Cpu::Cpu(Memory& memory) : _memory(memory), _registers(Registers{}) {
 int tile_count = 0;
 int line_count = 0;
 
-// Execute the next program instruction with the current pc
-void Cpu::execute_next() {
-    if (_registers.get_pc() == 0xC3F8) {
-        // Check VRAM data
-        cout << "Checking VRAM" << endl;
-
-        line_count++;
-
-        if (line_count == 8) {
-            line_count = 0;
-            tile_count++;
-        }
-
-        if (tile_count == 2) {
-            cout << "Printing tile at VRAM:8210" << endl;
-            printf("%X%X\n", _memory.read(0x8211), _memory.read(0x8210));
-            printf("%X%X\n", _memory.read(0x8213), _memory.read(0x8212));
-            printf("%X%X\n", _memory.read(0x8215), _memory.read(0x8214));
-            printf("%X%X\n", _memory.read(0x8217), _memory.read(0x8216));
-            printf("%X%X\n", _memory.read(0x8219), _memory.read(0x8218));
-            printf("%X%X\n", _memory.read(0x821B), _memory.read(0x821A));
-            printf("%X%X\n", _memory.read(0x821D), _memory.read(0x821C));
-            printf("%X%X\n", _memory.read(0x821F), _memory.read(0x821E));
-
-            cout << "Drawing tile at VRAM:8210" << endl;
-
-            // Draw tile (i is row index and j is col index)
-            for (int i = 0; i < 8; i++) {
-                u16 line_addr = 0x8210 + i * 2;
-
-                // Low bits of color numbers for the line
-                u8 color_numbers_low = _memory.read(line_addr);
-
-                // High bits of color numbers for the line
-                u8 color_numbers_high = _memory.read(line_addr + 1);
-
-                for (int j = 0; j < 8; j++) {
-                    u3 pixel_bit = 7 - j;
-                    u2 color_num = ((get_bit(color_numbers_high, pixel_bit) << 1)
-                                    | get_bit(color_numbers_low, pixel_bit));
-                    //printf("%02X ", color_num);
-
-                    cout << (color_num != 0);
-                }
-                printf("\n");
-            }
-
-            return;
-        }
-    }
-
-
+// Execute the next program instruction with the current pc and returns the
+// number of cycles taken to execute the instruction
+unsigned int Cpu::execute_next() {
     u8 opcode = _memory.read(_registers.get_pc());
 
     printf("pc: %X ", _registers.get_pc());
@@ -1335,18 +1286,6 @@ void Cpu::execute_next() {
                 
         printf("Called function: %X\n", next_u16);
 
-        // TODO: REMOVE THE FOLLOWING
-        // Tile drawing function
-        //if (next_u16 == 0xC093) {
-        //    cout << "Tile drawing!!!" << endl;
-        //    return;
-        //}
-
-        //if (next_u16 == 0xC79B) {
-        //    cout << "Tile drawing!!!" << endl;
-        //    return;
-        //}
-
         // Save current pc value in stack
         _push_stack(_registers.get_pc());
 
@@ -1511,8 +1450,6 @@ void Cpu::execute_next() {
     case 0xFD:
         cout << "Undefined" << endl;
 
-        return;
-
         break;
     case 0xFE:
     {
@@ -1644,17 +1581,18 @@ void Cpu::execute_next() {
             break;
         default:
             cout << "Unrecognized (extended) opcode" << endl;
-            return;
         }
 
         break;
     }
     default:
         cout << "Unrecognized opcode" << endl;
-        return;
     }
 
     //printf("pc: %X ", _registers.get_pc());
+
+    // TODO: Return actual number of cycles
+    return 1;
 }
 
 

@@ -150,6 +150,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Cpu.cpp" />
+    <ClCompile Include="GameBoy.cpp" />
     <ClCompile Include="Ppu.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Registers.cpp" />
@@ -158,6 +159,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cpu.h" />
+    <ClInclude Include="GameBoy.h" />
     <ClInclude Include="Ppu.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="types.h" />
