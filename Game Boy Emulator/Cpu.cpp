@@ -388,7 +388,6 @@ void Cpu::execute_next() {
     {
         cout << "DAA" << endl;
 
-        u8 a = _registers.get_a();
         bool flag_c = _registers.get_flag_c();
         bool flag_h = _registers.get_flag_h();
 
@@ -396,13 +395,13 @@ void Cpu::execute_next() {
         if (_registers.get_flag_n() == 0) {
             // Adjust if half carry or carry occurred or if result is out of bounds
 
-            if (flag_c == 1 || a > 0x99) {
-                _registers.set_a(a + 0x60);
+            if (flag_c == 1 || _registers.get_a() > 0x99) {
+                _registers.set_a(_registers.get_a() + 0x60);
                 _registers.set_flag_c(1);
             }
             
-            if (flag_h == 1 || (a & 0x0F) > 0x09) {
-                _registers.set_a(a + 0x6);
+            if (flag_h == 1 || (_registers.get_a() & 0x0F) > 0x09) {
+                _registers.set_a(_registers.get_a() + 0x6);
             }
         }
         // Case in which the previous arithmetic instruction was a subtraction
@@ -410,11 +409,11 @@ void Cpu::execute_next() {
             // Adjust if half carry or carry occurred
 
             if (flag_c == 1) {
-                _registers.set_a(a - 0x60);
+                _registers.set_a(_registers.get_a() - 0x60);
             }
 
             if (flag_h == 1) {
-                _registers.set_a(a - 0x6);
+                _registers.set_a(_registers.get_a() - 0x6);
             }
         }
 
@@ -1712,7 +1711,7 @@ void Cpu::_adc_a(const u8 val) {
     bool flag_c = _registers.get_flag_c();
     int res = a + val + flag_c;
 
-    _registers.set_flag_z(res == 0);
+    _registers.set_flag_z((u8)res == 0);
     _registers.set_flag_n(0);
     _registers.set_flag_h((a & 0xF) + (val & 0xF) + flag_c > 0xF);
     _registers.set_flag_c(res > 0xFF);
@@ -1725,7 +1724,7 @@ void Cpu::_adc_a(const u8 val) {
 u8 Cpu::_add(const u8 val1, const u8 val2) {
     u16 res = val1 + val2;
 
-    _registers.set_flag_z(res == 0);
+    _registers.set_flag_z((u8)res == 0);
     _registers.set_flag_n(0);
     _registers.set_flag_h(((val1 & 0xF) + (val2 & 0xF)) > 0xF);
     _registers.set_flag_c((res & 0x100) != 0);

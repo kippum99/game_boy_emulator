@@ -38,7 +38,7 @@ int main(int argc, char* args[]) {
     //SDL_Quit();
 
 
-    ifstream rom_file("roms/01-special.gb", ios::in | ios::binary | ios::ate);
+    ifstream rom_file("roms/02-interrupts.gb", ios::in | ios::binary | ios::ate);
 
     assert(rom_file.is_open());
 
@@ -66,19 +66,23 @@ int main(int argc, char* args[]) {
             //    cout << "Calling C05A" << endl;
             //}
 
-            if (cpu._registers.get_pc() == 0xC342 && cpu._registers.get_de() == 0x9A00) {
+            if (cpu._registers.get_pc() == 0xC33D && cpu._registers.get_de() == 0x9A00) {
                 cout << "check values here" << endl;
             }
 
-            if (cpu._registers.get_pc() == 0xC347 && cpu._registers.get_de() == 0x9A00) {
-                cout << "check values here" << endl;
-            }
+            //if (cpu._registers.get_pc() == 0xC34A && cpu._registers.get_de() == 0x00F0) {
+            //    cout << "check values here" << endl;
+            //}
 
-            if (cpu._registers.get_pc() == 0xC34A) {
-                cout << "we want to get here" << endl;
+            if (cpu._registers.get_pc() == 0xC34B && cpu._registers.get_de() == 0x00F0) {
+                cout << "check values here" << endl;
             }
 
             if (cpu._registers.get_pc() == 0xC350) {
+                cout << "we want to get here" << endl;
+            }
+
+            if (cpu._registers.get_pc() == 0xC359) {
                 cout << "we want to get here" << endl;
             }
 
