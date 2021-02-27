@@ -22,16 +22,14 @@ u8 Memory::read(const u16 addr) const {
 void Memory::write(const u16 addr, const u8 val) {
 	if (addr <= 0x7FFF) {
 		printf("ERROR: Cannot write to ROM at address %X\n", addr);
-		exit(1);
 	}
 	else if (addr >= 0xE000 and addr <= 0xFDFF) {
 		printf("ERROR: Use of prohibited address %X\n", addr);
-		exit(1);
 	}
 	else if (addr >= 0xFEA0 and addr <= 0xFEFF) {
 		printf("ERROR: Use of prohibited address %X\n", addr);
-		exit(1);
 	}
-	
-	_memory[addr] = val;
+	else {
+		_memory[addr] = val;
+	}
 }

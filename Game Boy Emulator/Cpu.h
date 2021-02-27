@@ -45,8 +45,10 @@ private:
 	u8 _inc(const u8 val);
 	u8 _or(const u8 val1, const u8 val2);
 	u8 _rr(const u8 val);
+	void _rst(const u8 n);
 	u8 _sra(const u8 val);
 	u8 _srl(const u8 val);
 	u8 _sub(const u8 val1, const u8 val2);
+	u8 _swap(const u8 n);
 };
 

@@ -56,7 +56,8 @@ Cpu::Cpu(Memory& memory) : _memory(memory), _registers(Registers{}) {
     // TODO: Remove this after implementing cycle and LCD properly
     // This is only maually set here so that we don't get stuck in a loop
     // while waiting for the value of LY to change.
-    _memory.write(0xFF44, 0x90);
+    //_memory.write(0xFF44, 0x90);
+    _memory.write(0xFF44, 0x94);
 }
 
 int tile_count = 0;
@@ -981,10 +982,46 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(_and(_registers.get_a(), _registers.get_b()));
 
         break;
+    case 0xA1:
+        cout << "AND A,C" << endl;
+
+        _registers.set_a(_and(_registers.get_a(), _registers.get_c()));
+
+        break;
+    case 0xA2:
+        cout << "AND A,D" << endl;
+
+        _registers.set_a(_and(_registers.get_a(), _registers.get_d()));
+
+        break;
+    case 0xA3:
+        cout << "AND A,E" << endl;
+
+        _registers.set_a(_and(_registers.get_a(), _registers.get_e()));
+
+        break;
+    case 0xA4:
+        cout << "AND A,H" << endl;
+
+        _registers.set_a(_and(_registers.get_a(), _registers.get_h()));
+
+        break;
+    case 0xA5:
+        cout << "AND A,L" << endl;
+
+        _registers.set_a(_and(_registers.get_a(), _registers.get_l()));
+
+        break;
+    case 0xA6:
+        cout << "AND A,(HL)" << endl;
+
+        _registers.set_a(_and(_registers.get_a(), _memory.read(_registers.get_hl())));
+
+        break;
     case 0xA7:
         cout << "AND A,A" << endl;
 
-        _registers.set_a(_or(_registers.get_a(), _registers.get_a()));
+        _registers.set_a(_and(_registers.get_a(), _registers.get_a()));
 
         break;
     case 0xA8:
@@ -1251,6 +1288,12 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(_add(_registers.get_a(), _read8()));
 
         break;
+    case 0xC7:
+        cout << "RST 00h" << endl;
+
+        _rst(0x00);
+
+        break;
     case 0xC8:
         cout << "RET Z" << endl;
 
@@ -1300,6 +1343,12 @@ unsigned int Cpu::execute_next() {
         _adc_a(_read8());
 
         break;
+    case 0xCF:
+        cout << "RST 08h" << endl;
+
+        _rst(0x08);
+
+        break;
     case 0xD0:
         cout << "RET NC" << endl;
 
@@ -1340,6 +1389,12 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(_sub(_registers.get_a(), _read8()));
 
         break;
+    case 0xD7:
+        cout << "RST 10h" << endl;
+
+        _rst(0x10);
+
+        break;
     case 0xD8:
         cout << "RET C" << endl;
 
@@ -1352,6 +1407,13 @@ unsigned int Cpu::execute_next() {
         }
 
         break;
+    case 0xD9:
+        cout << "RETI" << endl;
+
+        _registers.set_pc(_pop_stack());
+        _ime = 1;
+
+        break;
     case 0xDA:
         cout << "JP C,u16" << endl;
 
@@ -1360,6 +1422,12 @@ unsigned int Cpu::execute_next() {
         if (_registers.get_flag_c() == 1) {
             _registers.set_pc(next_u16);
         }
+
+        break;
+    case 0xDF:
+        cout << "RST 18h" << endl;
+
+        _rst(0x18);
 
         break;
     case 0xE0:
@@ -1374,6 +1442,12 @@ unsigned int Cpu::execute_next() {
         _registers.set_hl(_pop_stack());
 
         break;
+    case 0xE2:
+        cout << "LD (FF00+C),A" << endl;
+
+        _memory.write(0xFF00 + _registers.get_c(), _registers.get_a());
+
+        break;
     case 0xE5:
         cout << "PUSH HL" << endl;
 
@@ -1384,6 +1458,12 @@ unsigned int Cpu::execute_next() {
         cout << "AND A,u8" << endl;
 
         _registers.set_a(_and(_registers.get_a(), _read8()));
+
+        break;
+    case 0xE7:
+        cout << "RST 20h" << endl;
+
+        _rst(0x20);
 
         break;
     case 0xE9:
@@ -1413,6 +1493,12 @@ unsigned int Cpu::execute_next() {
 
         break;
     }
+    case 0xEF:
+        cout << "RST 28h" << endl;
+
+        _rst(0x28);
+
+        break;
     case 0xF0:
         cout << "LD A,(FF00+u8)" << endl;
 
@@ -1442,6 +1528,12 @@ unsigned int Cpu::execute_next() {
         cout << "OR A,u8" << endl;
 
         _registers.set_a(_or(_registers.get_a(), _read8()));
+
+        break;
+    case 0xF7:
+        cout << "RST 30h" << endl;
+
+        _rst(0x30);
 
         break;
     case 0xF8:
@@ -1492,7 +1584,12 @@ unsigned int Cpu::execute_next() {
 
         break;
     }
+    case 0xFF:
+        cout << "RST 38h" << endl;
 
+        _rst(0x38);
+
+        break;
     case 0xCB:  // Extended opcode
     {
         u8 extended_opcode = _memory.read(_registers.get_pc());
@@ -1550,6 +1647,12 @@ unsigned int Cpu::execute_next() {
             cout << "RR A" << endl;
 
             _registers.set_a(_rr(_registers.get_a()));
+
+            break;
+        case 0x37:
+            cout << "SWAP A" << endl;
+
+            _registers.set_a(_swap(_registers.get_a()));
 
             break;
         case 0x38:
@@ -1840,6 +1943,14 @@ u8 Cpu::_rr(const u8 val) {
 }
 
 
+// RST n - Push present address onto stack. Jump to address 0x0000 + n.
+void Cpu::_rst(const u8 n) {
+    _push_stack(_registers.get_pc());
+    _registers.set_pc(n);
+}
+
+
+
 // Performs arithmetic shift right to the given val (into carry flag), 
 // and returns the result. 
 // Also sets flags appropriately.
@@ -1866,6 +1977,19 @@ u8 Cpu::_srl(const u8 val) {
 
     _registers.set_flag_n(0);
     _registers.set_flag_h(0);
+
+    return res;
+}
+
+
+// Swaps upper & lower nibbles of n and returns it. Sets flags appropriately. 
+u8 Cpu::_swap(const u8 n) {
+    u8 res = ((n & 0xF) << 4) | (n >> 4);
+
+    _registers.set_flag_z(res == 0);
+    _registers.set_flag_n(0);
+    _registers.set_flag_h(0);
+    _registers.set_flag_c(0);
 
     return res;
 }
