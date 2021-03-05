@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <iostream>
 
 #include "GameBoy.h"
@@ -12,6 +13,9 @@ GameBoy::GameBoy() : _memory(Memory{}), _cpu(Cpu{ _memory }), _ppu(Ppu{ _memory 
 
 
 void GameBoy::load_rom(const u8* rom) {
+    // No banking has been implemented yet.
+    //assert(rom[0x147] == 0x00);
+
 	_memory.load_rom(rom);
 }
 
@@ -27,13 +31,11 @@ void GameBoy::update_frame() {
         unsigned int cycles = _cpu.execute_next();
 
         _timer.update(cycles);
-        //_ppu.update(cycles);
+        _ppu.update(cycles);
         _cpu.handle_interrupt();
 
         total_cycles += cycles;
     }
 
-    if (_cpu._registers.get_pc() > 0x3000) {
-        _ppu.render();
-    }
+    _ppu.render();
 }

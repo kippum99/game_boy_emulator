@@ -1,6 +1,8 @@
 #include <iostream>
 
 #include "Memory.h"
+#include "utils.h"
+
 
 Memory::Memory() {
 	_memory = new u8[65536]{ 0 };
@@ -19,6 +21,7 @@ u8 Memory::read(const u16 addr) const {
 	return _memory[addr];
 }
 
+
 void Memory::write(const u16 addr, const u8 val) {
 	if (addr <= 0x7FFF) {
 		printf("ERROR: Cannot write to ROM at address %X\n", addr);
@@ -32,4 +35,10 @@ void Memory::write(const u16 addr, const u8 val) {
 	else {
 		_memory[addr] = val;
 	}
+}
+
+
+void Memory::request_interrupt(u3 interrupt_bit) {
+	u8 interrupt_flag = _memory[0xFF0F];
+	_memory[0xFF0F] = set_bit(interrupt_flag, interrupt_bit, 1);
 }
