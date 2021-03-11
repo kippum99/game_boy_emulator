@@ -15,6 +15,7 @@ int main(int argc, char* args[]) {
 
     FILE* rom_file;
     rom_file = fopen("roms/01-special.gb", "rb");
+    //rom_file = fopen("roms/dmg-acid2.gb", "rb");
     //rom_file = fopen("roms/tetris.gb", "rb");
 
     fread(cartridge_memory, 1, 0x200000, rom_file);

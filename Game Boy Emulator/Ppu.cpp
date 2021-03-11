@@ -55,17 +55,18 @@ void Ppu::update(const unsigned int cycles) {
     _curr_scanline_cycles += cycles;
 
     if (_curr_scanline_cycles >= CYCLES_PER_SCANLINE) {
+        // Draw current scanline before moving on to the next scaline
+        unsigned int curr_scanline = _memory.read(0xFF44);
+
+        if (curr_scanline < 144) {
+            _draw_scanline(curr_scanline);
+        }
+
         // Move to the next scanline
         _curr_scanline_cycles %= CYCLES_PER_SCANLINE;
 
-        // Update and retrieve LY register value (current horizontal line)
-        unsigned int curr_scanline = (_memory.read(0xFF44) + 1) % 154;
-        _memory.write(0xFF44, curr_scanline);
-
-        if (curr_scanline < 144) {
-            // Draw current scanline
-            _draw_scanline(curr_scanline);
-        }
+        // Update LY register value
+        _memory.write(0xFF44, (curr_scanline + 1) % 154);
     }
 
     // TODO: Is it ok to check LYC == LY after updating LY? or do it before and after?
@@ -75,70 +76,6 @@ void Ppu::update(const unsigned int cycles) {
 
 
 void Ppu::render() {
-    //// Get LCDC register value 
-    //const u8 lcdc = _memory.read(0xFF40);
-
-    //// Check which BG tile data map to use
-    //u16 bg_tile_map_addr;
-
-    //if (get_bit(lcdc, 3) == 0) {
-    //    bg_tile_map_addr = 0x9800;
-    //}
-    //else {
-    //    bg_tile_map_addr = 0x9C00;
-    //}
-
-    //// Check which BG & Window tile data table to use
-    //u16 tile_data_addr;
-
-    //if (get_bit(lcdc, 4) == 0) {
-    //    tile_data_addr = 0x8800;
-    //}
-    //else {
-    //    tile_data_addr = 0x8000;
-    //}
-    //
-    //SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
-
-    //// Draw 256 x 256 pixels of background 
-    //for (int y = 0; y < 256; y++) {
-    //    for (int x = 0; x < 256; x++) {
-    //        // Get tile number (before mapping), ranging from 0 to 1023
-    //        int tile_num = 32 * (int)(y / 8) + (int)(x / 8);
-
-    //        // Get mapped tile number 
-    //        u8 mapped_tile_num = _memory.read(bg_tile_map_addr + tile_num);
-
-    //        // Get row / col within tile 
-    //        u3 tile_row = y % 8;
-    //        u3 tile_col = x % 8;
-    //        u3 pixel_bit = 7 - tile_col;
-
-    //        // Get line address
-    //        u16 line_addr;
-
-    //        if (tile_data_addr == 0x8000) {
-    //            line_addr = 0x8000 + mapped_tile_num * 16 + tile_row * 2;
-    //        }
-    //        else {
-    //            line_addr = 0x8800 + (i8)mapped_tile_num * 16 + tile_row * 2;
-    //        }
-
-    //        // Get low and high bits of color number 
-    //        bool color_number_low = get_bit(_memory.read(line_addr), pixel_bit);
-    //        bool color_number_high = get_bit(_memory.read(line_addr + 1), pixel_bit);
-
-    //        // Get color number 
-    //        u2 color_num = (color_number_high << 1) | color_number_low;
-
-    //        // Draw pixel 
-    //        if (color_num != 0) {
-    //            SDL_RenderDrawPoint(_renderer, x, y);
-    //        }
-
-    //    }
-    //}
-
     SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
     SDL_RenderClear(_renderer);
 
@@ -148,7 +85,7 @@ void Ppu::render() {
         for (int x = 0; x < 160; x++) {
             if (_pixel_matrix[y * 160 + x] == 1) {
                 SDL_RenderDrawPoint(_renderer, x, y);
-                _pixel_matrix[y * 160 + x] = 0;
+                //_pixel_matrix[y * 160 + x] = 0;
             }
         }
     }
@@ -231,7 +168,7 @@ void Ppu::_draw_scanline(const unsigned int y) {
     u16 tile_data_addr;
 
     if (get_bit(lcdc, 4) == 0) {
-        tile_data_addr = 0x8800;
+        tile_data_addr = 0x9000;
     }
     else {
         tile_data_addr = 0x8000;
@@ -253,6 +190,10 @@ void Ppu::_draw_scanline(const unsigned int y) {
         // Get mapped tile number 
         u8 mapped_tile_num = _memory.read(bg_tile_map_addr + tile_num);
 
+        if (mapped_tile_num == 0x9B) {
+            cout << "check here" << endl;
+        }
+
         // Get row / col within tile 
         u3 tile_row = background_y % 8;
         u3 tile_col = background_x % 8;
@@ -265,7 +206,7 @@ void Ppu::_draw_scanline(const unsigned int y) {
             line_addr = 0x8000 + mapped_tile_num * 16 + tile_row * 2;
         }
         else {
-            line_addr = 0x8800 + (i8)mapped_tile_num * 16 + tile_row * 2;
+            line_addr = 0x9000 + (i8)mapped_tile_num * 16 + tile_row * 2;
         }
 
         // Get low and high bits of color number 

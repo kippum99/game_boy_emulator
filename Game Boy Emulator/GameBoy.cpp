@@ -24,11 +24,13 @@ void GameBoy::load_rom(const u8* rom) {
 void GameBoy::update_frame() {
     const unsigned int CYCLES_PER_FRAME = 69905;
     
-    // Total number of cycles during this frame
+    // Total number of (clock) cycles during this frame
     unsigned int total_cycles = 0;
 
     while (total_cycles < CYCLES_PER_FRAME) {
         unsigned int cycles = _cpu.execute_next();
+        
+        assert(cycles % 4 == 0);
 
         _timer.update(cycles);
         _ppu.update(cycles);
