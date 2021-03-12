@@ -9,6 +9,8 @@ using namespace std;
 
 
 Cpu::Cpu(Memory& memory) : _memory(memory), _registers(Registers{}) {
+    is_on = true;
+
     _ime = true;
 
     // Power up (reset register values)
@@ -75,7 +77,7 @@ unsigned int Cpu::execute_next() {
     // printf("pc: %X ", _registers.get_pc());
 
     if (_registers.get_pc() == 0x01FD) {
-        cout << "vblank interrupt handler here. check values" << endl;
+        //cout << "vblank interrupt handler here. check values" << endl;
     }
 
     _registers.inc_pc();
@@ -885,6 +887,12 @@ unsigned int Cpu::execute_next() {
         _memory.write(_registers.get_hl(), _registers.get_l());
 
         return 8;
+    case 0x76:
+        //cout << "HALT" << endl;
+
+        is_on = false;
+
+        return 4;
     case 0x77:
         // cout << "LD (HL),A" << endl;
 
@@ -1795,6 +1803,312 @@ unsigned int Cpu::execute_next() {
             _registers.set_a(set_bit(_registers.get_a(), 0, 0));
 
             break;
+        case 0x88:
+            // cout << "RES 1,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 1, 0));
+
+            break;
+        case 0x89:
+            // cout << "RES 1,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 1, 0));
+
+            break;
+        case 0x8A:
+            // cout << "RES 1,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 1, 0));
+
+            break;
+        case 0x8B:
+            // cout << "RES 1,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 1, 0));
+
+            break;
+        case 0x8C:
+            // cout << "RES 1,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 1, 0));
+
+            break;
+        case 0x8D:
+            // cout << "RES 1,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 1, 0));
+
+            break;
+        case 0x8E:
+        {
+            // cout << "RES 1,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 1, 0));
+
+            return 16;
+        }
+        case 0x8F:
+            // cout << "RES 1,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 1, 0));
+
+            break;
+        case 0x90:
+            // cout << "RES 2,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 2, 0));
+
+            break;
+        case 0x91:
+            // cout << "RES 2,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 2, 0));
+
+            break;
+        case 0x92:
+            // cout << "RES 2,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 2, 0));
+
+            break;
+        case 0x93:
+            // cout << "RES 2,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 2, 0));
+
+            break;
+        case 0x94:
+            // cout << "RES 2,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 2, 0));
+
+            break;
+        case 0x95:
+            // cout << "RES 2,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 2, 0));
+
+            break;
+        case 0x96:
+        {
+            // cout << "RES 2,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 2, 0));
+
+            return 16;
+        }
+        case 0x97:
+            // cout << "RES 2,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 2, 0));
+
+            break;
+        case 0x98:
+            // cout << "RES 3,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 3, 0));
+
+            break;
+        case 0x99:
+            // cout << "RES 3,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 3, 0));
+
+            break;
+        case 0x9A:
+            // cout << "RES 3,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 3, 0));
+
+            break;
+        case 0x9B:
+            // cout << "RES 3,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 3, 0));
+
+            break;
+        case 0x9C:
+            // cout << "RES 3,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 3, 0));
+
+            break;
+        case 0x9D:
+            // cout << "RES 3,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 3, 0));
+
+            break;
+        case 0x9E:
+        {
+            // cout << "RES 3,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 3, 0));
+
+            return 16;
+        }
+        case 0x9F:
+            // cout << "RES 3,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 3, 0));
+
+            break;
+        case 0xA0:
+            // cout << "RES 4,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 4, 0));
+
+            break;
+        case 0xA1:
+            // cout << "RES 4,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 4, 0));
+
+            break;
+        case 0xA2:
+            // cout << "RES 4,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 4, 0));
+
+            break;
+        case 0xA3:
+            // cout << "RES 4,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 4, 0));
+
+            break;
+        case 0xA4:
+            // cout << "RES 4,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 4, 0));
+
+            break;
+        case 0xA5:
+            // cout << "RES 4,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 4, 0));
+
+            break;
+        case 0xA6:
+        {
+            // cout << "RES 4,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 4, 0));
+
+            return 16;
+        }
+        case 0xA7:
+            // cout << "RES 4,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 4, 0));
+
+            break;
+        case 0xA8:
+            // cout << "RES 5,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 5, 0));
+
+            break;
+        case 0xA9:
+            // cout << "RES 5,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 5, 0));
+
+            break;
+        case 0xAA:
+            // cout << "RES 5,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 5, 0));
+
+            break;
+        case 0xAB:
+            // cout << "RES 5,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 5, 0));
+
+            break;
+        case 0xAC:
+            // cout << "RES 5,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 5, 0));
+
+            break;
+        case 0xAD:
+            // cout << "RES 5,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 5, 0));
+
+            break;
+        case 0xAE:
+        {
+            // cout << "RES 5,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 5, 0));
+
+            return 16;
+        }
+        case 0xAF:
+            // cout << "RES 5,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 5, 0));
+
+            break;
+        case 0xB0:
+            // cout << "RES 6,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 6, 0));
+
+            break;
+        case 0xB1:
+            // cout << "RES 6,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 6, 0));
+
+            break;
+        case 0xB2:
+            // cout << "RES 6,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 6, 0));
+
+            break;
+        case 0xB3:
+            // cout << "RES 6,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 6, 0));
+
+            break;
+        case 0xB4:
+            // cout << "RES 6,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 6, 0));
+
+            break;
+        case 0xB5:
+            // cout << "RES 6,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 6, 0));
+
+            break;
+        case 0xB6:
+        {
+            // cout << "RES 6,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 6, 0));
+
+            return 16;
+        }
+        case 0xB7:
+            // cout << "RES 6,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 6, 0));
+
+            break;
         case 0xB8:
             // cout << "RES 7,B" << endl;
 
@@ -1846,6 +2160,57 @@ unsigned int Cpu::execute_next() {
             _registers.set_a(set_bit(_registers.get_a(), 7, 0));
 
             break;
+        case 0xC0:
+            // cout << "SET 0,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 0, 1));
+
+            break;
+        case 0xC1:
+            // cout << "SET 0,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 0, 1));
+
+            break;
+        case 0xC2:
+            // cout << "SET 0,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 0, 1));
+
+            break;
+        case 0xC3:
+            // cout << "SET 0,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 0, 1));
+
+            break;
+        case 0xC4:
+            // cout << "SET 0,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 0, 1));
+
+            break;
+        case 0xC5:
+            // cout << "SET 0,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 0, 1));
+
+            break;
+        case 0xC6:
+        {
+            // cout << "SET 0,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 0, 1));
+
+            return 16;
+        }
+        case 0xC7:
+            // cout << "SET 0,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 0, 1));
+
+            break;
         case 0xC8:
             // cout << "SET 1,B" << endl;
 
@@ -1895,6 +2260,108 @@ unsigned int Cpu::execute_next() {
             // cout << "SET 1,A" << endl;
 
             _registers.set_a(set_bit(_registers.get_a(), 1, 1));
+
+            break;
+        case 0xD0:
+            // cout << "SET 2,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 2, 1));
+
+            break;
+        case 0xD1:
+            // cout << "SET 2,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 2, 1));
+
+            break;
+        case 0xD2:
+            // cout << "SET 2,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 2, 1));
+
+            break;
+        case 0xD3:
+            // cout << "SET 2,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 2, 1));
+
+            break;
+        case 0xD4:
+            // cout << "SET 2,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 2, 1));
+
+            break;
+        case 0xD5:
+            // cout << "SET 2,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 2, 1));
+
+            break;
+        case 0xD6:
+        {
+            // cout << "SET 2,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 2, 1));
+
+            return 16;
+        }
+        case 0xD7:
+            // cout << "SET 2,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 2, 1));
+
+            break;
+        case 0xD8:
+            // cout << "SET 3,B" << endl;
+
+            _registers.set_b(set_bit(_registers.get_b(), 3, 1));
+
+            break;
+        case 0xD9:
+            // cout << "SET 3,C" << endl;
+
+            _registers.set_c(set_bit(_registers.get_c(), 3, 1));
+
+            break;
+        case 0xDA:
+            // cout << "SET 3,D" << endl;
+
+            _registers.set_d(set_bit(_registers.get_d(), 3, 1));
+
+            break;
+        case 0xDB:
+            // cout << "SET 3,E" << endl;
+
+            _registers.set_e(set_bit(_registers.get_e(), 3, 1));
+
+            break;
+        case 0xDC:
+            // cout << "SET 3,H" << endl;
+
+            _registers.set_h(set_bit(_registers.get_h(), 3, 1));
+
+            break;
+        case 0xDD:
+            // cout << "SET 3,L" << endl;
+
+            _registers.set_l(set_bit(_registers.get_l(), 3, 1));
+
+            break;
+        case 0xDE:
+        {
+            // cout << "SET 3,(HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, set_bit(_memory.read(hl_addr), 3, 1));
+
+            return 16;
+        }
+        case 0xDF:
+            // cout << "SET 3,A" << endl;
+
+            _registers.set_a(set_bit(_registers.get_a(), 3, 1));
 
             break;
         case 0xE0:
@@ -2119,14 +2586,20 @@ unsigned int Cpu::execute_next() {
 
 
 void Cpu::handle_interrupt() {
-    if (_ime) {
+    // If CPU has been halted, we need to check if an interrupt is requested even if
+    // IME is disabled to unhalt it.
+    if (_ime || !is_on) {
         u8 interrupt_flag = _memory.read(0xFF0F);
         u8 interrupt_enable = _memory.read(0xFFFF);
 
         // Service the interrupt in the order of priority
         for (int i = 0; i <= 4; i++) {
             if (get_bit(interrupt_flag, i) && get_bit(interrupt_enable, i)) {
-                Cpu::service_interrupt(i);
+                is_on = true;
+
+                if (_ime) {
+                    Cpu::service_interrupt(i);
+                }
             }
         }
     }

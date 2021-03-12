@@ -10,7 +10,7 @@ using namespace std;
 Ppu::Ppu(Memory& memory) : _memory(memory) {
     _curr_scanline_cycles = 0;
 
-    _pixel_matrix = new u3[144 * 160]{ 0 };
+    _pixel_matrix = new u2[144 * 160]{ 0 };
 
 	// Initialize SDL
     //SDL_Event event;
@@ -81,12 +81,27 @@ void Ppu::render() {
 
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
 
+    // Draw background tiles
     for (int y = 0; y < 144; y++) {
         for (int x = 0; x < 160; x++) {
-            if (_pixel_matrix[y * 160 + x] == 1) {
-                SDL_RenderDrawPoint(_renderer, x, y);
-                //_pixel_matrix[y * 160 + x] = 0;
+            u2 color_value = _pixel_matrix[y * 160 + x];
+
+            switch (color_value) {
+            case 0:     // White
+                SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
+                break;
+            case 1:     // Light gray
+                SDL_SetRenderDrawColor(_renderer, 170, 170, 170, 255);
+                break;
+            case 2:     // Dark gray
+                SDL_SetRenderDrawColor(_renderer, 85, 85, 85, 255);
+                break;
+            case 3:     // Black
+                SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
+                break;
             }
+
+            SDL_RenderDrawPoint(_renderer, x, y);
         }
     }
 
@@ -151,19 +166,24 @@ void Ppu::_set_lcd_status() {
 
 
 void Ppu::_draw_scanline(const unsigned int y) {
+    // TODO: Check if window display is enabled (bit 5), and check if bg and window are enabled (bit 0).
+
     // Get LCDC register value 
     const u8 lcdc = _memory.read(0xFF40);
 
-    // Check which BG tile data map to use
-    u16 bg_tile_map_addr;
-
-    if (get_bit(lcdc, 3) == 0) {
-        bg_tile_map_addr = 0x9800;
-    }
-    else {
-        bg_tile_map_addr = 0x9C00;
+    // Check if backround and window display is enabled
+    if (get_bit(lcdc, 0)) {
+        _draw_background(y, lcdc);
     }
 
+    // Check if object display is enabled
+    if (get_bit(lcdc, 1)) {
+        _draw_objects(y, lcdc);
+    }
+}
+
+
+void Ppu::_draw_background(const unsigned int y, const u8 lcdc) {
     // Check which BG & Window tile data table to use
     u16 tile_data_addr;
 
@@ -178,25 +198,64 @@ void Ppu::_draw_scanline(const unsigned int y) {
     u8 scroll_y = _memory.read(0xFF42);
     u8 scroll_x = _memory.read(0xFF43);
 
+    // Get WY and WX
+    u8 wy = _memory.read(0xFF4A);
+    u8 wx = _memory.read(0xFF4B);
+
+    // The following is true if window display is enabled and the current scanline
+    // (or part of it) is in window
+    bool is_using_window = get_bit(lcdc, 5) && (y >= wy) && (wx >= 0 && wx <= 166);
+
     // Draw scanline
     for (int x = 0; x < 144; x++) {
-        // Find the x, y coordinate of the 256 x 256 background pixel to display
-        unsigned int background_x = (scroll_x + x) % 256;
-        unsigned int background_y = (scroll_y + y) % 256;
+        // Check if background or window should be displayed at this pixel
+        bool is_in_window = is_using_window && (x >= (i8)(wx - 7));
+
+        // Get address of background or window tile map to use
+        u16 tile_map_addr;
+
+        // Get x, y coordinate of the pixel in window or background space (256 x 256)
+        unsigned int translated_x;
+        unsigned int translated_y;
+
+        if (is_in_window) {
+            if (get_bit(lcdc, 6)) {
+                tile_map_addr = 0x9C00;
+            }
+            else {
+                tile_map_addr = 0x9800;
+            }
+
+            // Find the x, y coordinate of the pixel in window space
+            translated_x = x - (wx - 7);
+            translated_y = y - wy;
+        }
+        else {
+            if (get_bit(lcdc, 3)) {
+                tile_map_addr = 0x9C00;
+            }
+            else {
+                tile_map_addr = 0x9800;
+            }
+
+            // Find the x, y coordinate of the pixel in background space
+            translated_x = (scroll_x + x) % 256;
+            translated_y = (scroll_y + y) % 256;
+        }
 
         // Get tile number (before mapping), ranging from 0 to 1023
-        int tile_num = 32 * (int)(background_y / 8) + (int)(background_x / 8);
+        int tile_num = 32 * (int)(translated_y / 8) + (int)(translated_x / 8);
 
         // Get mapped tile number 
-        u8 mapped_tile_num = _memory.read(bg_tile_map_addr + tile_num);
+        u8 mapped_tile_num = _memory.read(tile_map_addr + tile_num);
 
         if (mapped_tile_num == 0x9B) {
             cout << "check here" << endl;
         }
 
         // Get row / col within tile 
-        u3 tile_row = background_y % 8;
-        u3 tile_col = background_x % 8;
+        u3 tile_row = translated_y % 8;
+        u3 tile_col = translated_x % 8;
         u3 pixel_bit = 7 - tile_col;
 
         // Get line address
@@ -216,7 +275,16 @@ void Ppu::_draw_scanline(const unsigned int y) {
         // Get color number 
         u2 color_num = (color_number_high << 1) | color_number_low;
 
+        // Get color value from background palette (BGP)
+        u8 bgp = _memory.read(0xFF47);
+        u2 color_value = 0b11 & (bgp >> (color_num * 2));
+
         // Draw pixel
-        _pixel_matrix[y * 160 + x] = (color_num != 0);
+        _pixel_matrix[y * 160 + x] = color_value;
     }
+}
+
+
+void Ppu::_draw_objects(const unsigned int y, const u8 lcdc) {
+
 }

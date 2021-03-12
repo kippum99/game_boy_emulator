@@ -28,12 +28,20 @@ void GameBoy::update_frame() {
     unsigned int total_cycles = 0;
 
     while (total_cycles < CYCLES_PER_FRAME) {
-        unsigned int cycles = _cpu.execute_next();
-        
-        assert(cycles % 4 == 0);
+        // TODO: Logic with HALT may have to be fixed
+        unsigned int cycles;
+        if (_cpu.is_on) {
+            cycles = _cpu.execute_next();
+            assert(cycles % 4 == 0);
+            _timer.update(cycles);
+        }
+        else {
+            cycles = 4;
+        }
 
-        _timer.update(cycles);
         _ppu.update(cycles);
+
+        // TODO: What about cycles from interrupt?
         _cpu.handle_interrupt();
 
         total_cycles += cycles;
