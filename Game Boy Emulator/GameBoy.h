@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Cpu.h"
+#include "Joypad.h"
 #include "Memory.h"
 #include "Ppu.h"
 #include "Timer.h"
@@ -18,6 +19,7 @@ private:
 	Memory _memory;
 	Cpu _cpu;
 	Ppu _ppu;
+	Joypad _joypad;
 	Timer _timer;
 };
 

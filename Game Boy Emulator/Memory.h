@@ -16,4 +16,6 @@ public:
 
 private:
 	u8* _memory;
+
+	void _do_dma_transfer(const u8 source_start_addr);
 };

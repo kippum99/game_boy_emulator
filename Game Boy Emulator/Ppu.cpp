@@ -263,10 +263,6 @@ void Ppu::_draw_background(const unsigned int y, const u8 lcdc) {
         // Get mapped tile number 
         u8 mapped_tile_num = _memory.read(tile_map_addr + tile_num);
 
-        if (mapped_tile_num == 0x9B) {
-            cout << "check here" << endl;
-        }
-
         // Get row / col within tile 
         u3 tile_row = translated_y % 8;
         u3 tile_col = translated_x % 8;

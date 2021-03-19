@@ -32,6 +32,12 @@ void Memory::write(const u16 addr, const u8 val) {
 	else if (addr >= 0xFEA0 and addr <= 0xFEFF) {
 		//printf("ERROR: Use of prohibited address %X\n", addr);
 	}
+	else if (addr == 0xFF46) {
+		// Initiate DMA Transfer
+		_do_dma_transfer(val << 8);
+
+		_memory[addr] = val;
+	}
 	else {
 		_memory[addr] = val;
 	}
@@ -41,4 +47,13 @@ void Memory::write(const u16 addr, const u8 val) {
 void Memory::request_interrupt(u3 interrupt_bit) {
 	u8 interrupt_flag = _memory[0xFF0F];
 	_memory[0xFF0F] = set_bit(interrupt_flag, interrupt_bit, 1);
+}
+
+
+void Memory::_do_dma_transfer(const u8 source_start_addr) {
+	// Total of 0xA0 bytes will be copied from source to 
+	// destination area (0xFE00-0xFE9F)
+	for (int i = 0; i < 0xA0; i++) {
+		_memory[0xFE00 + i] = _memory[source_start_addr + i];
+	}
 }

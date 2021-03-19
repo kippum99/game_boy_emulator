@@ -7,9 +7,8 @@
 using namespace std;
 
 
-GameBoy::GameBoy() : _memory(Memory{}), _cpu(Cpu{ _memory }), _ppu(Ppu{ _memory }), 
-                     _timer(Timer{}) {
-}
+GameBoy::GameBoy() : _memory(Memory{}), _cpu(Cpu{ _memory }), _ppu(Ppu{ _memory }),
+                     _joypad(Joypad{ _memory }), _timer(Timer{}) {}
 
 
 void GameBoy::load_rom(const u8* rom) {
@@ -30,9 +29,12 @@ void GameBoy::update_frame() {
     while (total_cycles < CYCLES_PER_FRAME) {
         // TODO: Logic with HALT may have to be fixed
         unsigned int cycles;
+
         if (_cpu.is_on) {
             cycles = _cpu.execute_next();
+
             assert(cycles % 4 == 0);
+
             _timer.update(cycles);
         }
         else {
@@ -40,6 +42,9 @@ void GameBoy::update_frame() {
         }
 
         _ppu.update(cycles);
+
+        // Update joypad input register (FF00)
+        _joypad.update();
 
         // TODO: What about cycles from interrupt?
         _cpu.handle_interrupt();
