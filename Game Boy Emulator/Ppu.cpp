@@ -71,8 +71,15 @@ void Ppu::update(const unsigned int cycles) {
         // Move to the next scanline
         _curr_scanline_cycles %= CYCLES_PER_SCANLINE;
 
+        unsigned int next_scanline = (curr_scanline + 1) % 154;
+
+        // Check if we just entered VBlank mode
+        if (next_scanline == 144) {
+            _memory.request_interrupt(0);
+        }
+
         // Update LY register value
-        _memory.write(0xFF44, (curr_scanline + 1) % 154);
+        _memory.write(0xFF44, next_scanline);
 
         is_new_scanline = true;
     }

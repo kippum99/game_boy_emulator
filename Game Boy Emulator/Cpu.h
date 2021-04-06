@@ -38,15 +38,18 @@ private:
 	void _push_stack(const u16 val);
 	u16 _pop_stack();
 
-	void _adc_a(const u8 val);
+	void _adc_a(const u8 n);
 	u8 _add(const u8 val1, const u8 val2);
 	void _add_hl(const u16 n);
 	u8 _and(const u8 val1, const u8 val2);
 	void _cp(const u8 val1, const u8 val2);
 	u8 _inc(const u8 val);
 	u8 _or(const u8 val1, const u8 val2);
+	u8 _rlc(const u8 val);
+	u8 _rl(const u8 val);
 	u8 _rr(const u8 val);
 	void _rst(const u8 n);
+	u8 _sla(const u8 val);
 	u8 _sra(const u8 val);
 	u8 _srl(const u8 val);
 	u8 _sub(const u8 val1, const u8 val2);
