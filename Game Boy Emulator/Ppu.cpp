@@ -96,7 +96,6 @@ void Ppu::render() {
 
     SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
 
-    // Draw background tiles
     for (int y = 0; y < 144; y++) {
         for (int x = 0; x < 160; x++) {
             u2 color_value = _pixel_matrix[y * 160 + x];
@@ -308,8 +307,8 @@ void Ppu::_draw_background(const unsigned int y, const u8 lcdc) {
 
 
 struct Sprite {
-    i8 x_pos;					// x position of the leftmost part of the sprite
-    i8 y_pos;                   // y position of the topmost part of the sprite
+    int x_pos;					// x position of the leftmost part of the sprite (may be negative)
+    int y_pos;                  // y position of the topmost part of the sprite (may be negative)
     unsigned int sprite_index;	// Ranges from 0 to 39
     u8 tile_num;
     u8 attributes;
@@ -351,8 +350,8 @@ void Ppu::_draw_objects(const unsigned int y, const u8 lcdc) {
         u16 sprite_addr = 0xFE00 + sprite_index * 4;
 
         // x, y positions of the top left corner of the sprite
-        i8 sprite_y = _memory.read(sprite_addr) - 16;
-        i8 sprite_x = _memory.read(sprite_addr + 1) - 8;
+        int sprite_y = _memory.read(sprite_addr) - 16;
+        int sprite_x = _memory.read(sprite_addr + 1) - 8;
         u8 tile_num = _memory.read(sprite_addr + 2);
         u8 attributes = _memory.read(sprite_addr + 3);
 
@@ -434,7 +433,7 @@ void Ppu::_draw_objects(const unsigned int y, const u8 lcdc) {
             }
 
             // Get x position in LCD
-            i8 x_pos = sprite.x_pos + x;
+            int x_pos = sprite.x_pos + x;
 
             if (x_pos < 0 || x_pos >= 160) {
                 continue;

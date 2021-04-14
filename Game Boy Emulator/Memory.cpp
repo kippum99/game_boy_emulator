@@ -50,10 +50,10 @@ void Memory::request_interrupt(u3 interrupt_bit) {
 }
 
 
-void Memory::_do_dma_transfer(const u8 source_start_addr) {
+void Memory::_do_dma_transfer(const u16 source_start_addr) {
 	// Total of 0xA0 bytes will be copied from source to 
 	// destination area (0xFE00-0xFE9F)
-	for (int i = 0; i < 0xA0; i++) {
+	for (int i = 0; i <= 0x9F; i++) {
 		_memory[0xFE00 + i] = _memory[source_start_addr + i];
 	}
 }
