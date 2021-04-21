@@ -14,28 +14,6 @@ Ppu::Ppu(Memory& memory) : _memory(memory) {
     _window_line = 0;
 
     _pixel_matrix = new u2[144 * 160]{ 0 };
-
-	// Initialize SDL
-    //SDL_Event event;
-    //SDL_Window* window;
-    //SDL_Renderer* renderer;
-    SDL_CreateWindowAndRenderer(160, 144, 0, &_window, &_renderer);
-    //SDL_CreateWindowAndRenderer(256, 256, 0, &_window, &_renderer);
-
-    //SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
-    //SDL_RenderClear(_renderer);
-
-    //SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    //SDL_RenderDrawPoint(renderer, 150, 150); //Renders on middle of screen.
-    //SDL_RenderPresent(renderer);
-
-    //while (1) {
-    //    if (SDL_PollEvent(&event) && event.type == SDL_QUIT)
-    //        break;
-    //}
-    //SDL_DestroyRenderer(renderer);
-    //SDL_DestroyWindow(window);
-    //SDL_Quit();
 }
 
 
@@ -90,11 +68,11 @@ void Ppu::update(const unsigned int cycles) {
 }
 
 
-void Ppu::render() {
-    SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
-    SDL_RenderClear(_renderer);
+void Ppu::render(SDL_Renderer* renderer) {
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 
     for (int y = 0; y < 144; y++) {
         for (int x = 0; x < 160; x++) {
@@ -102,24 +80,24 @@ void Ppu::render() {
 
             switch (color_value) {
             case 0:     // White
-                SDL_SetRenderDrawColor(_renderer, 255, 255, 255, 255);
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
                 break;
             case 1:     // Light gray
-                SDL_SetRenderDrawColor(_renderer, 170, 170, 170, 255);
+                SDL_SetRenderDrawColor(renderer, 170, 170, 170, 255);
                 break;
             case 2:     // Dark gray
-                SDL_SetRenderDrawColor(_renderer, 85, 85, 85, 255);
+                SDL_SetRenderDrawColor(renderer, 85, 85, 85, 255);
                 break;
             case 3:     // Black
-                SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 break;
             }
 
-            SDL_RenderDrawPoint(_renderer, x, y);
+            SDL_RenderDrawPoint(renderer, x, y);
         }
     }
 
-    SDL_RenderPresent(_renderer);
+    SDL_RenderPresent(renderer);
 }
 
 
@@ -183,7 +161,6 @@ void Ppu::_set_lcd_status(const bool is_new_scanline) {
     _memory.write(0xFF41, stat);
 }
 
-
 void Ppu::_draw_scanline(const unsigned int y) {
     // TODO: Check if window display is enabled (bit 5), and check if bg and window are enabled (bit 0).
 
@@ -200,7 +177,6 @@ void Ppu::_draw_scanline(const unsigned int y) {
         _draw_objects(y, lcdc);
     }
 }
-
 
 void Ppu::_draw_background(const unsigned int y, const u8 lcdc) {
     // Check which BG & Window tile data table to use

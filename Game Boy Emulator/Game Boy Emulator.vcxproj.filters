@@ -59,9 +59,6 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Ppu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="GameBoy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,6 +66,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Joypad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ppu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

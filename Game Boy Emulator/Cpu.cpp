@@ -54,16 +54,6 @@ Cpu::Cpu(Memory& memory) : _memory(memory), _registers(Registers{}) {
     _memory.write(0xFF4A, 0x00);    // WY
     _memory.write(0xFF4B, 0x00);    // WX
     _memory.write(0xFFFF, 0x00);    // IE
-
-    // TODO: Remove this later
-    // Disable boot ROM
-    //_memory.write(0xFF50, 0x01);
-
-    // TODO: Remove this after implementing cycle and LCD properly
-    // This is only maually set here so that we don't get stuck in a loop
-    // while waiting for the value of LY to change.
-    //_memory.write(0xFF44, 0x90);
-    //_memory.write(0xFF44, 0x91);
 }
 
 int tile_count = 0;

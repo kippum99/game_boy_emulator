@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SDL.h>
+
 #include "Cpu.h"
 #include "Joypad.h"
 #include "Memory.h"
@@ -13,7 +15,7 @@ public:
 	GameBoy();
 
 	void load_rom(const u8* rom);
-	void update_frame();
+	void update_frame(SDL_Renderer* renderer);
 
 private:
 	Memory _memory;

@@ -20,7 +20,7 @@ void GameBoy::load_rom(const u8* rom) {
 
 
 // This function should be called 60 times a second (60 fps)
-void GameBoy::update_frame() {
+void GameBoy::update_frame(SDL_Renderer* renderer) {
     const unsigned int CYCLES_PER_FRAME = 69905;
     
     // Total number of (clock) cycles during this frame
@@ -52,5 +52,5 @@ void GameBoy::update_frame() {
         total_cycles += cycles;
     }
 
-    _ppu.render();
+    _ppu.render(renderer);
 }

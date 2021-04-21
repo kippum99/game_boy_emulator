@@ -10,7 +10,7 @@ public:
 	Ppu(Memory& memory);
 
 	void update(const unsigned int cycles);
-	void render();
+	void render(SDL_Renderer* renderer);
 
 private:
 	const unsigned int CYCLES_PER_SCANLINE = 456;
@@ -25,10 +25,6 @@ private:
 
 	// Pixel matrix of 144 rows by 160 columns, where each element is a color value 0, 1, 2, or 3.
 	u2* _pixel_matrix;
-
-	//SDL_Event _event;
-	SDL_Window* _window;
-	SDL_Renderer* _renderer;
 
 	void _set_lcd_status(const bool is_new_scanline);
 	void _draw_scanline(const unsigned int scanline);
