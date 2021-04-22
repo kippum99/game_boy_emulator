@@ -43,8 +43,8 @@ void GameBoy::update_frame(SDL_Renderer* renderer) {
 
         _ppu.update(cycles);
 
-        // Update joypad input register (FF00)
-        _joypad.update();
+        // Update joypad input register (FF00 - JOYP)
+        _joypad.update_joyp_register();
 
         // TODO: What about cycles from interrupt?
         _cpu.handle_interrupt();
@@ -53,4 +53,14 @@ void GameBoy::update_frame(SDL_Renderer* renderer) {
     }
 
     _ppu.render(renderer);
+}
+
+// This function is called when a button is pressed.
+void GameBoy::on_button_pressed(Button button) {
+    _joypad.on_button_pressed(button);
+}
+
+// This function is called when a button is released.
+void GameBoy::on_button_released(Button button) {
+    _joypad.on_button_released(button);
 }

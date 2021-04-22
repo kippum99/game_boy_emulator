@@ -2,6 +2,7 @@
 
 #include <SDL.h>
 
+#include "Button.h"
 #include "Cpu.h"
 #include "Joypad.h"
 #include "Memory.h"
@@ -16,6 +17,8 @@ public:
 
 	void load_rom(const u8* rom);
 	void update_frame(SDL_Renderer* renderer);
+	void on_button_pressed(Button button);
+	void on_button_released(Button button);
 
 private:
 	Memory _memory;

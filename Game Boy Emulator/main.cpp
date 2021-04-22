@@ -39,6 +39,64 @@ int main(int argc, char* args[]) {
                 quit = true;
                 false;
                 break;
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym) {
+                case SDLK_RIGHT:
+                    gameboy.on_button_pressed(Button::right);
+                    break;
+                case SDLK_LEFT:
+                    gameboy.on_button_pressed(Button::left);
+                    break;
+                case SDLK_UP:
+                    gameboy.on_button_pressed(Button::up);
+                    break;
+                case SDLK_DOWN:
+                    gameboy.on_button_pressed(Button::down);
+                    break;
+                case SDLK_s:
+                    gameboy.on_button_pressed(Button::a);
+                    break;
+                case SDLK_a:
+                    gameboy.on_button_pressed(Button::b);
+                    break;
+                case SDLK_LSHIFT:
+                case SDLK_RSHIFT:
+                    gameboy.on_button_pressed(Button::select);
+                    break;
+                case SDLK_RETURN:
+                    gameboy.on_button_pressed(Button::start);
+                    break;
+                }
+                break;
+            case SDL_KEYUP:
+                switch (event.key.keysym.sym) {
+                case SDLK_RIGHT:
+                    gameboy.on_button_released(Button::right);
+                    break;
+                case SDLK_LEFT:
+                    gameboy.on_button_released(Button::left);
+                    break;
+                case SDLK_UP:
+                    gameboy.on_button_released(Button::up);
+                    break;
+                case SDLK_DOWN:
+                    gameboy.on_button_released(Button::down);
+                    break;
+                case SDLK_s:
+                    gameboy.on_button_released(Button::a);
+                    break;
+                case SDLK_a:
+                    gameboy.on_button_released(Button::b);
+                    break;
+                case SDLK_LSHIFT:
+                case SDLK_RSHIFT:
+                    gameboy.on_button_released(Button::select);
+                    break;
+                case SDLK_RETURN:
+                    gameboy.on_button_released(Button::start);
+                    break;
+                }
+                break;
             }
         }
         gameboy.update_frame(renderer);
