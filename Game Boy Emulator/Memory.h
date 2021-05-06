@@ -14,6 +14,9 @@ public:
 
 	void request_interrupt(u3 interrupt_bit);
 
+	void increment_div_register();
+	void reset_div_register();
+
 private:
 	u8* _memory;
 

@@ -16,11 +16,9 @@ void Memory::load_rom(const u8* rom) {
 	}
 }
 
-
 u8 Memory::read(const u16 addr) const {
 	return _memory[addr];
 }
-
 
 void Memory::write(const u16 addr, const u8 val) {
 	if (addr <= 0x7FFF) {
@@ -31,6 +29,10 @@ void Memory::write(const u16 addr, const u8 val) {
 	}
 	else if (addr >= 0xFEA0 and addr <= 0xFEFF) {
 		//printf("ERROR: Use of prohibited address %X\n", addr);
+	}
+	else if (addr == 0xFF04) {
+		// Writing to the DIV register resets it to $00
+		_memory[addr] = 0;
 	}
 	else if (addr == 0xFF46) {
 		// Initiate DMA Transfer
@@ -43,10 +45,19 @@ void Memory::write(const u16 addr, const u8 val) {
 	}
 }
 
-
 void Memory::request_interrupt(u3 interrupt_bit) {
 	u8 interrupt_flag = _memory[0xFF0F];
 	_memory[0xFF0F] = set_bit(interrupt_flag, interrupt_bit, 1);
+}
+
+// Increments the divider register (FF04 - DIV).
+void Memory::increment_div_register() {
+	_memory[0xFF04]++;
+}
+
+// Resets the divider register (FF04 - DIV).
+void Memory::reset_div_register() {
+	_memory[0xFF04] = 0;
 }
 
 

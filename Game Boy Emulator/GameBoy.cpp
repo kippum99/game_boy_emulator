@@ -8,7 +8,7 @@ using namespace std;
 
 
 GameBoy::GameBoy() : _memory(Memory{}), _cpu(Cpu{ _memory }), _ppu(Ppu{ _memory }),
-                     _joypad(Joypad{ _memory }), _timer(Timer{}) {}
+                     _joypad(Joypad{ _memory }), _timer(Timer{ _memory }) {}
 
 
 void GameBoy::load_rom(const u8* rom) {

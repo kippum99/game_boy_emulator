@@ -66,9 +66,11 @@ unsigned int Cpu::execute_next() {
 
     // printf("pc: %X ", _registers.get_pc());
 
-    if (_registers.get_pc() == 0x01FD) {
-        //cout << "vblank interrupt handler here. check values" << endl;
-    }
+    //if (_registers.get_pc() == 0x0346) {
+    //    //_registers.set_c(0x08);
+    //    //_registers.set_flag_z(0);
+    //    cout << "about to redraw tiles (0377). check values here." << endl;
+    //}
 
     _registers.inc_pc();
 
@@ -185,6 +187,12 @@ unsigned int Cpu::execute_next() {
         _registers.set_c(_read8());
 
         return 8;
+    //case 0x10:
+    //    cout << "STOP" << endl;
+
+    //    // TODO: Reset DIV to 0 when executing stop instruction
+
+    //    break;
     case 0x11:
         //cout << "LD DE,u16" << endl;
 
@@ -1037,6 +1045,54 @@ unsigned int Cpu::execute_next() {
         //cout << "ADC A,A" << endl;
 
         _adc_a(_registers.get_a());
+
+        break;
+    case 0x90:
+        //cout << "SUB A,B" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _registers.get_b()));
+
+        break;
+    case 0x91:
+        //cout << "SUB A,C" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _registers.get_c()));
+
+        break;
+    case 0x92:
+        //cout << "SUB A,D" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _registers.get_d()));
+
+        break;
+    case 0x93:
+        //cout << "SUB A,E" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _registers.get_e()));
+
+        break;
+    case 0x94:
+        //cout << "SUB A,H" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _registers.get_h()));
+
+        break;
+    case 0x95:
+        //cout << "SUB A,L" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _registers.get_l()));
+
+        break;
+    case 0x96:
+        //cout << "SUB A,(HL)" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _memory.read(_registers.get_hl())));
+
+        return 8;
+    case 0x97:
+        //cout << "SUB A,A" << endl;
+
+        _registers.set_a(_sub(_registers.get_a(), _registers.get_a()));
 
         break;
     case 0xA0:
