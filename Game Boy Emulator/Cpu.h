@@ -49,6 +49,7 @@ private:
 	u8 _rl(const u8 val);
 	u8 _rr(const u8 val);
 	void _rst(const u8 n);
+	void _sbc_a(const u8 n);
 	u8 _sla(const u8 val);
 	u8 _sra(const u8 val);
 	u8 _srl(const u8 val);

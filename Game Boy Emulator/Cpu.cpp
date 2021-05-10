@@ -510,6 +510,14 @@ unsigned int Cpu::execute_next() {
         _memory.write(_registers.get_hl(), _read8());
 
         return 12;
+    case 0x37:
+        //cout << "SCF" << endl;
+
+        _registers.set_flag_n(0);
+        _registers.set_flag_h(0);
+        _registers.set_flag_c(1);
+
+        break;
     case 0x38:
         //cout << "JR C,i8" << endl;
 
@@ -1095,6 +1103,54 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(_sub(_registers.get_a(), _registers.get_a()));
 
         break;
+    case 0x98:
+        //cout << "SBC A,B" << endl;
+        
+        _sbc_a(_registers.get_b());
+
+        break;
+    case 0x99:
+        //cout << "SBC A,C" << endl;
+
+        _sbc_a(_registers.get_c());
+
+        break;
+    case 0x9A:
+        //cout << "SBC A,D" << endl;
+
+        _sbc_a(_registers.get_d());
+
+        break;
+    case 0x9B:
+        //cout << "SBC A,E" << endl;
+
+        _sbc_a(_registers.get_e());
+
+        break;
+    case 0x9C:
+        //cout << "SBC A,H" << endl;
+
+        _sbc_a(_registers.get_h());
+
+        break;
+    case 0x9D:
+        //cout << "SBC A,L" << endl;
+
+        _sbc_a(_registers.get_l());
+
+        break;
+    case 0x9E:
+        //cout << "SBC A,(HL)" << endl;
+
+        _sbc_a(_memory.read(_registers.get_hl()));
+
+        return 8;
+    case 0x9F:
+        //cout << "SBC A,A" << endl;
+
+        _sbc_a(_registers.get_a());
+
+        break;
     case 0xA0:
         //cout << "AND A,B" << endl;
 
@@ -1603,6 +1659,22 @@ unsigned int Cpu::execute_next() {
         _rst(0x20);
 
         return 16;
+    case 0xE8:
+    {
+        //cout << "ADD SP,i8" << endl;
+
+        const u16 sp = _registers.get_sp();
+        const i8 next_i8 = _read8();
+
+        _registers.set_sp(sp + next_i8);
+        
+        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
+        _registers.set_flag_h((sp & 0xF) + (next_i8 & 0xF) > 0xF);
+        _registers.set_flag_c((sp & 0xFF) + next_i8 > 0xFF);
+
+        return 16;
+    }
     case 0xE9:
         //cout << "JP HL" << endl;
 
@@ -1649,6 +1721,12 @@ unsigned int Cpu::execute_next() {
         _registers.set_af(_pop_stack());
 
         return 12;
+    case 0xF2:
+        //cout << "LD A,(FF00+C)" << endl;
+
+        _registers.set_a(_memory.read(0xFF00 + _registers.get_c()));
+
+        return 8;
     case 0xF3:
         //cout << "DI" << endl;
         
@@ -1735,6 +1813,57 @@ unsigned int Cpu::execute_next() {
         // printf("%X ", extended_opcode);
 
         switch (extended_opcode) {
+        case 0x10:
+            //cout << "RL B" << endl;
+
+            _registers.set_b(_rl(_registers.get_b()));
+
+            break;
+        case 0x11:
+            //cout << "RL C" << endl;
+
+            _registers.set_c(_rl(_registers.get_c()));
+
+            break;
+        case 0x12:
+            //cout << "RL D" << endl;
+
+            _registers.set_d(_rl(_registers.get_d()));
+
+            break;
+        case 0x13:
+            //cout << "RL E" << endl;
+
+            _registers.set_e(_rl(_registers.get_e()));
+
+            break;
+        case 0x14:
+            //cout << "RL H" << endl;
+
+            _registers.set_h(_rl(_registers.get_h()));
+
+            break;
+        case 0x15:
+            //cout << "RL L" << endl;
+
+            _registers.set_l(_rl(_registers.get_l()));
+
+            break;
+        case 0x16:
+        {
+            //cout << "RL (HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, _rl(_memory.read(hl_addr)));
+
+            return 16;
+        }
+        case 0x17:
+            //cout << "RL A" << endl;
+
+            _registers.set_a(_rl(_registers.get_a()));
+
+            break;
         case 0x18:
             //cout << "RR B" << endl;
 
@@ -3439,7 +3568,7 @@ void Cpu::_cp(const u8 val1, const u8 val2) {
 
     _registers.set_flag_z(res == 0);
     _registers.set_flag_n(1);
-    _registers.set_flag_h((i8)((val1 & 0xF) - (val2 & 0xF)) < 0);
+    _registers.set_flag_h((val1 & 0xF) < (val2 & 0xF));
     _registers.set_flag_c(res < 0);
 }
 
@@ -3518,6 +3647,20 @@ u8 Cpu::_rr(const u8 val) {
 void Cpu::_rst(const u8 n) {
     _push_stack(_registers.get_pc());
     _registers.set_pc(n);
+}
+
+// SBC A,n - Subtract n + Carry flag from A. Sets flags approrpaitely.
+void Cpu::_sbc_a(const u8 n) {
+    const u8 val_to_subtract = n + _registers.get_flag_c();
+    const u8 a = _registers.get_a();
+    const u8 res = a - val_to_subtract;
+
+    _registers.set_a(res);
+
+    _registers.set_flag_z(res == 0);
+    _registers.set_flag_n(1);
+    _registers.set_flag_h((a & 0xF) < (val_to_subtract & 0xF));
+    _registers.set_flag_c(a < val_to_subtract);
 }
 
 // Performs shift left to the given val (into carry flag), 
