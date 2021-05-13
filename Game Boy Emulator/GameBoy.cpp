@@ -34,13 +34,12 @@ void GameBoy::update_frame(SDL_Renderer* renderer) {
             cycles = _cpu.execute_next();
 
             assert(cycles % 4 == 0);
-
-            _timer.update(cycles);
         }
         else {
             cycles = 4;
         }
 
+        _timer.update(cycles);
         _ppu.update(cycles);
 
         // Update joypad input register (FF00 - JOYP)

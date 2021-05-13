@@ -64,17 +64,17 @@ int line_count = 0;
 unsigned int Cpu::execute_next() {
     u8 opcode = _memory.read(_registers.get_pc());
 
-    // printf("pc: %X ", _registers.get_pc());
+    //printf("pc: %X ", _registers.get_pc());
 
     //if (_registers.get_pc() == 0x0346) {
     //    //_registers.set_c(0x08);
     //    //_registers.set_flag_z(0);
-    //    cout << "about to redraw tiles (0377). check values here." << endl;
+    //    //cout << "about to redraw tiles (0377). check values here." << endl;
     //}
 
     _registers.inc_pc();
 
-    // printf("%X ", opcode);
+    //printf("%X ", opcode);
 
     u8 next_u8;
     u16 next_u16;
@@ -188,7 +188,7 @@ unsigned int Cpu::execute_next() {
 
         return 8;
     //case 0x10:
-    //    cout << "STOP" << endl;
+    //    //cout << "STOP" << endl;
 
     //    // TODO: Reset DIV to 0 when executing stop instruction
 
@@ -575,6 +575,14 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(next_u8);
 
         return 8;
+    case 0x3F:
+        //cout << "CCF" << endl;
+
+        _registers.set_flag_n(0);
+        _registers.set_flag_h(0);
+        _registers.set_flag_c(!_registers.get_flag_c());
+
+        break;
     case 0x40:
         //cout << "LD B,B" << endl;
 
