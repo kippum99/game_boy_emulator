@@ -47,6 +47,7 @@ private:
 	u8 _or(const u8 val1, const u8 val2);
 	u8 _rlc(const u8 val);
 	u8 _rl(const u8 val);
+	u8 _rrc(const u8 val);
 	u8 _rr(const u8 val);
 	void _rst(const u8 n);
 	void _sbc_a(const u8 n);

@@ -54,6 +54,23 @@ Cpu::Cpu(Memory& memory) : _memory(memory), _registers(Registers{}) {
     _memory.write(0xFF4A, 0x00);    // WY
     _memory.write(0xFF4B, 0x00);    // WX
     _memory.write(0xFFFF, 0x00);    // IE
+
+    // Undocumented registers / CGB-only registers that are read-only
+    _memory.write(0xFF1F, 0xFF);
+
+    for (unsigned int addr = 0xFF4C; addr < 0xFF72; addr++) {
+        _memory.write(addr, 0xFF);
+    }
+
+    _memory.write(0xFF73, 0xFF);
+    _memory.write(0xFF74, 0xFF);
+    
+    // Only bits 4, 5, and 6 of this register are read/write enabled
+    _memory.write(0xFF75, 0b10001111);
+
+    for (unsigned int addr = 0xFF76; addr < 0xFF80; addr++) {
+        _memory.write(addr, 0xFF);
+    }
 }
 
 int tile_count = 0;
@@ -66,10 +83,8 @@ unsigned int Cpu::execute_next() {
 
     //printf("pc: %X ", _registers.get_pc());
 
-    //if (_registers.get_pc() == 0x0346) {
-    //    //_registers.set_c(0x08);
-    //    //_registers.set_flag_z(0);
-    //    //cout << "about to redraw tiles (0377). check values here." << endl;
+    //if (_registers.get_pc() == 0x0100) {
+    //    cout << "check values here" << endl;
     //}
 
     _registers.inc_pc();
@@ -187,6 +202,12 @@ unsigned int Cpu::execute_next() {
         _registers.set_c(_read8());
 
         return 8;
+    case 0x0F:
+        //cout << "RRCA" << endl;
+
+        _registers.set_a(_rrc(_registers.get_a()));
+
+        break;
     //case 0x10:
     //    //cout << "STOP" << endl;
 
@@ -236,6 +257,12 @@ unsigned int Cpu::execute_next() {
         _registers.set_d(_read8());
 
         return 8;
+    case 0x17:
+        //cout << "RLA" << endl;
+
+        _registers.set_a(_rl(_registers.get_a()));
+
+        break;
     case 0x18:
         //cout << "JR i8" << endl;
 
@@ -1215,7 +1242,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
 
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1229,7 +1256,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
 
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1243,7 +1270,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
 
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1257,7 +1284,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
 
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1271,7 +1298,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
 
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1285,7 +1312,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
 
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1299,7 +1326,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
             
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1311,7 +1338,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(0);
 
         _registers.set_flag_z(1);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1625,6 +1652,12 @@ unsigned int Cpu::execute_next() {
         }
 
         return 12;
+    case 0xDE:
+        //cout << "SBC A,u8" << endl;
+
+        _sbc_a(_read8());
+
+        return 8;
     case 0xDF:
         //cout << "RST 18h" << endl;
 
@@ -1704,7 +1737,7 @@ unsigned int Cpu::execute_next() {
         _registers.set_a(res);
 
         _registers.set_flag_z(res == 0);
-        _registers.set_flag_z(0);
+        _registers.set_flag_n(0);
         _registers.set_flag_h(0);
         _registers.set_flag_c(0);
 
@@ -1821,6 +1854,108 @@ unsigned int Cpu::execute_next() {
         // printf("%X ", extended_opcode);
 
         switch (extended_opcode) {
+        case 0x00:
+            //cout << "RLC B" << endl;
+
+            _registers.set_b(_rlc(_registers.get_b()));
+
+            break;
+        case 0x01:
+            //cout << "RLC C" << endl;
+
+            _registers.set_c(_rlc(_registers.get_c()));
+
+            break;
+        case 0x02:
+            //cout << "RLC D" << endl;
+
+            _registers.set_d(_rlc(_registers.get_d()));
+
+            break;
+        case 0x03:
+            //cout << "RLC E" << endl;
+
+            _registers.set_e(_rlc(_registers.get_e()));
+
+            break;
+        case 0x04:
+            //cout << "RLC H" << endl;
+
+            _registers.set_h(_rlc(_registers.get_h()));
+
+            break;
+        case 0x05:
+            //cout << "RLC L" << endl;
+
+            _registers.set_l(_rlc(_registers.get_l()));
+
+            break;
+        case 0x06:
+        {
+            //cout << "RLC (HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, _rlc(_memory.read(hl_addr)));
+
+            return 16;
+        }
+        case 0x07:
+            //cout << "RLC A" << endl;
+
+            _registers.set_a(_rlc(_registers.get_a()));
+
+            break;
+        case 0x08:
+            //cout << "RRC B" << endl;
+
+            _registers.set_b(_rrc(_registers.get_b()));
+
+            break;
+        case 0x09:
+            //cout << "RRC C" << endl;
+
+            _registers.set_c(_rrc(_registers.get_c()));
+
+            break;
+        case 0x0A:
+            //cout << "RRC D" << endl;
+
+            _registers.set_d(_rrc(_registers.get_d()));
+
+            break;
+        case 0x0B:
+            //cout << "RRC E" << endl;
+
+            _registers.set_e(_rrc(_registers.get_e()));
+
+            break;
+        case 0x0C:
+            //cout << "RRC H" << endl;
+
+            _registers.set_h(_rrc(_registers.get_h()));
+
+            break;
+        case 0x0D:
+            //cout << "RRC L" << endl;
+
+            _registers.set_l(_rrc(_registers.get_l()));
+
+            break;
+        case 0x0E:
+        {
+            //cout << "RRC (HL)" << endl;
+
+            u16 hl_addr = _registers.get_hl();
+            _memory.write(hl_addr, _rrc(_memory.read(hl_addr)));
+
+            return 16;
+        }
+        case 0x0F:
+            //cout << "RRC A" << endl;
+
+            _registers.set_a(_rrc(_registers.get_a()));
+
+            break;
         case 0x10:
             //cout << "RL B" << endl;
 
@@ -3631,6 +3766,21 @@ u8 Cpu::_rl(const u8 val) {
     _registers.set_flag_n(0);
     _registers.set_flag_h(0);
     _registers.set_flag_c(old_bit_7);
+
+    return res;
+}
+
+// For RRC n - Rotate n right. Old bit 0 to Carry flag.
+// [0] -> [7 -> 0] -> C
+// Sets flags appropriately.
+u8 Cpu::_rrc(const u8 val) {
+    _registers.set_flag_c(val & 1);
+
+    u8 res = val >> 1;
+
+    _registers.set_flag_z(res == 0);
+    _registers.set_flag_n(0);
+    _registers.set_flag_h(0);
 
     return res;
 }

@@ -40,6 +40,18 @@ void Memory::write(const u16 addr, const u8 val) {
 
 		_memory[addr] = val;
 	}
+	else if (addr == 0xFF75) {
+		// Only bits 4, 5, and 6 of this register are read/write enabled
+		_memory[addr] = 0b10001111 | (val & 0b01110000);
+	}
+	else if (addr == 0xFF1F 
+				|| (addr >= 0xFF4C && addr < 0xFF72)
+				|| addr == 0xFF73
+				|| addr == 0xFF74
+				|| (addr >= 0xFF76 && addr < 0xFF80)) {
+		// This register is an undocumented register that is read-only in non-GGB mode
+		return;
+	}
 	else {
 		_memory[addr] = val;
 	}
